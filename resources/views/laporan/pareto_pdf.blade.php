@@ -1,62 +1,44 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analisis Pareto ABC - {{ $periodeInfo ? $periodeInfo['nama_bulan'] : 'Semua Periode' }}</title>
+    <title>Analisis ABC Pareto</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
         body {
             font-family: Arial, sans-serif;
-            font-size: 10px;
-            line-height: 1.4;
-            color: #333;
-            background: #fff;
-        }
-        
-        .first-page-header {
-            text-align: center;
-            margin-bottom: 20px;
-            padding: 20px;
-            background: linear-gradient(135deg, #653361, #8e4585);
-            color: white;
-            border-radius: 8px;
-            page-break-inside: avoid;
-        }
-        
-        .first-page-header h1 {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 8px;
-            letter-spacing: 1.5px;
-        }
-        
-        .first-page-header .subtitle {
-            font-size: 14px;
-            opacity: 0.95;
-            margin-bottom: 5px;
-        }
-        
-        .first-page-header .export-info {
+            margin: 0;
+            padding: 10px;
             font-size: 11px;
-            opacity: 0.8;
-            margin-top: 8px;
+            line-height: 1.2;
         }
         
-        .info-section {
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #2c3e50;
+            color: white;
+            border-radius: 5px;
+        }
+        
+        .header h1 {
+            margin: 0 0 5px 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .header .subtitle {
+            margin: 0;
+            font-size: 12px;
+        }
+        
+        .info-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 20px;
-            padding: 12px;
+            margin-bottom: 10px;
             background: #f8f9fa;
-            border-radius: 6px;
-            border-left: 5px solid #653361;
-            page-break-inside: avoid;
+            padding: 8px;
+            border-radius: 3px;
         }
         
         .info-item {
@@ -67,188 +49,114 @@
         .info-item .label {
             font-size: 9px;
             color: #666;
-            margin-bottom: 3px;
-            font-weight: 500;
+            margin-bottom: 2px;
         }
         
         .info-item .value {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
-            color: #333;
         }
         
-        .summary-cards {
+        .categories {
             display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            gap: 12px;
-            page-break-inside: avoid;
+            gap: 8px;
+            margin-bottom: 15px;
         }
         
-        .summary-card {
+        .category {
             flex: 1;
-            padding: 12px;
-            border-radius: 6px;
+            padding: 8px;
             text-align: center;
+            border-radius: 5px;
             border: 2px solid;
         }
         
-        .summary-card.category-a {
+        .category-a {
             background: #ffebee;
             border-color: #f44336;
             color: #c62828;
         }
         
-        .summary-card.category-b {
+        .category-b {
             background: #fff8e1;
             border-color: #ff9800;
             color: #e65100;
         }
         
-        .summary-card.category-c {
+        .category-c {
             background: #e8f5e8;
             border-color: #4caf50;
             color: #2e7d32;
         }
         
-        .summary-card .category-label {
+        .category h3 {
+            margin: 0 0 5px 0;
+            font-size: 12px;
+        }
+        
+        .category .stats {
+            font-size: 10px;
+        }
+        
+        .category .percentage {
             font-size: 14px;
             font-weight: bold;
-            margin-bottom: 6px;
+            display: block;
+            margin: 3px 0;
         }
         
-        .summary-card .category-count {
-            font-size: 11px;
-            margin-bottom: 4px;
-        }
-        
-        .summary-card .category-value {
-            font-size: 10px;
-            margin-bottom: 4px;
-        }
-        
-        .summary-card .category-contribution {
-            font-size: 12px;
-            font-weight: bold;
-        }
-        
-        .data-table {
+        table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             font-size: 9px;
         }
         
-        .data-table th {
-            background: #653361;
+        th {
+            background: #2c3e50;
             color: white;
-            padding: 10px 5px;
+            padding: 6px 3px;
             text-align: center;
-            font-weight: bold;
+            font-size: 8px;
             border: 1px solid #ddd;
-            font-size: 9px;
         }
         
-        .data-table td {
-            padding: 7px 5px;
+        td {
+            padding: 4px 3px;
             border: 1px solid #ddd;
             text-align: center;
-            vertical-align: middle;
         }
         
-        .data-table tbody tr:nth-child(even) {
+        tr:nth-child(even) {
             background: #f9f9f9;
         }
         
-        .category-a-row {
-            background: #ffebee !important;
-        }
+        .cat-a { background: #ffebee !important; }
+        .cat-b { background: #fff8e1 !important; }
+        .cat-c { background: #e8f5e8 !important; }
         
-        .category-b-row {
-            background: #fff8e1 !important;
-        }
-        
-        .category-c-row {
-            background: #e8f5e8 !important;
-        }
-        
-        .category-badge {
-            padding: 3px 7px;
-            border-radius: 4px;
+        .badge {
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 7px;
             font-weight: bold;
-            font-size: 8px;
-            display: inline-block;
-        }
-        
-        .category-badge.A {
-            background: #f44336;
             color: white;
         }
         
-        .category-badge.B {
-            background: #ff9800;
-            color: white;
-        }
-        
-        .category-badge.C {
-            background: #4caf50;
-            color: white;
-        }
+        .badge-a { background: #f44336; }
+        .badge-b { background: #ff9800; }
+        .badge-c { background: #4caf50; }
         
         .text-left { text-align: left !important; }
         .text-right { text-align: right !important; }
-        .text-center { text-align: center !important; }
         
         .footer {
-            margin-top: 20px;
-            padding: 12px;
+            margin-top: 10px;
+            padding: 8px;
             background: #f8f9fa;
-            border-radius: 6px;
             text-align: center;
             font-size: 9px;
-            color: #666;
-            border-top: 2px solid #653361;
-            page-break-inside: avoid;
-        }
-        
-        .progress-bar {
-            width: 100%;
-            height: 4px;
-            background: #e0e0e0;
-            border-radius: 2px;
-            overflow: hidden;
-            margin: 2px 0;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background: #653361;
-            border-radius: 2px;
-        }
-        
-        /* Page break settings */
-        .page-break-before {
-            page-break-before: always;
-        }
-        
-        .page-break-after {
-            page-break-after: always;
-        }
-        
-        .no-page-break {
-            page-break-inside: avoid;
-        }
-        
-        @media print {
-            body { 
-                font-size: 9px; 
-            }
-            .first-page-header h1 { 
-                font-size: 18px; 
-            }
-            .no-print { 
-                display: none; 
-            }
+            border-top: 2px solid #2c3e50;
         }
         
         @page {
@@ -258,20 +166,18 @@
     </style>
 </head>
 <body>
-    <!-- Header hanya di halaman pertama -->
-    <div class="first-page-header no-page-break">
-        <h1>ANALISIS PARETO ABC</h1>
+    <!-- Header -->
+    <div class="header">
+        <h1>ANALISIS ABC PARETO</h1>
         <div class="subtitle">
             {{ $periodeInfo ? strtoupper($periodeInfo['nama_bulan']) : 'SEMUA PERIODE' }} - 
-            BASIS: {{ $sortBy === 'quantity' ? 'KUANTITAS STOK' : 'NILAI INVENTORI' }}
-        </div>
-        <div class="export-info">
-            Digenerate pada: {{ now()->format('d/m/Y H:i:s') }}
+            {{ $sortBy === 'quantity' ? 'BASIS KUANTITAS' : 'BASIS NILAI' }} - 
+            {{ now()->format('d/m/Y H:i') }}
         </div>
     </div>
 
-    <!-- Info Section -->
-    <div class="info-section no-page-break">
+    <!-- Info Summary -->
+    <div class="info-row">
         <div class="info-item">
             <div class="label">Total Barang</div>
             <div class="value">{{ number_format($stats['total_barang'], 0, ',', '.') }}</div>
@@ -286,76 +192,77 @@
         </div>
         <div class="info-item">
             <div class="label">Periode</div>
-            <div class="value">{{ $periodeInfo ? $periodeInfo['nama_bulan'] : 'Semua Periode' }}</div>
+            <div class="value">{{ $periodeInfo ? $periodeInfo['nama_bulan'] : 'Semua' }}</div>
         </div>
         <div class="info-item">
-            <div class="label">Basis Analisis</div>
+            <div class="label">Basis</div>
             <div class="value">{{ $sortBy === 'quantity' ? 'Kuantitas' : 'Nilai' }}</div>
         </div>
     </div>
 
-    <!-- Summary Cards -->
-    <div class="summary-cards no-page-break">
-        <div class="summary-card category-a">
-            <div class="category-label">KATEGORI A</div>
-            <div class="category-count">{{ number_format($stats['kategori_a_count'], 0, ',', '.') }} Item</div>
-            <div class="category-value">Rp {{ number_format($stats['nilai_kategori_a'], 0, ',', '.') }}</div>
-            <div class="category-contribution">{{ $stats['kontribusi_a'] }}% Kontribusi</div>
+    <!-- Categories -->
+    <div class="categories">
+        <div class="category category-a">
+            <h3>KATEGORI A</h3>
+            <div class="stats">
+                <span class="percentage">{{ $stats['kontribusi_a'] }}%</span>
+                {{ number_format($stats['kategori_a_count'], 0, ',', '.') }} Item<br>
+                Rp {{ number_format($stats['nilai_kategori_a'], 0, ',', '.') }}
+            </div>
         </div>
-        <div class="summary-card category-b">
-            <div class="category-label">KATEGORI B</div>
-            <div class="category-count">{{ number_format($stats['kategori_b_count'], 0, ',', '.') }} Item</div>
-            <div class="category-value">Rp {{ number_format($stats['nilai_kategori_b'], 0, ',', '.') }}</div>
-            <div class="category-contribution">{{ $stats['kontribusi_b'] }}% Kontribusi</div>
+        <div class="category category-b">
+            <h3>KATEGORI B</h3>
+            <div class="stats">
+                <span class="percentage">{{ $stats['kontribusi_b'] }}%</span>
+                {{ number_format($stats['kategori_b_count'], 0, ',', '.') }} Item<br>
+                Rp {{ number_format($stats['nilai_kategori_b'], 0, ',', '.') }}
+            </div>
         </div>
-        <div class="summary-card category-c">
-            <div class="category-label">KATEGORI C</div>
-            <div class="category-count">{{ number_format($stats['kategori_c_count'], 0, ',', '.') }} Item</div>
-            <div class="category-value">Rp {{ number_format($stats['nilai_kategori_c'], 0, ',', '.') }}</div>
-            <div class="category-contribution">{{ $stats['kontribusi_c'] }}% Kontribusi</div>
+        <div class="category category-c">
+            <h3>KATEGORI C</h3>
+            <div class="stats">
+                <span class="percentage">{{ $stats['kontribusi_c'] }}%</span>
+                {{ number_format($stats['kategori_c_count'], 0, ',', '.') }} Item<br>
+                Rp {{ number_format($stats['nilai_kategori_c'], 0, ',', '.') }}
+            </div>
         </div>
     </div>
 
     <!-- Data Table -->
-    <table class="data-table">
+    <table>
         <thead>
             <tr>
-                <th style="width: 4%;">No</th>
-                <th style="width: 28%;">Nama Barang</th>
-                <th style="width: 8%;">Periode</th>
-                <th style="width: 15%;">Vendor</th>
-                <th style="width: 8%;">Qty</th>
-                <th style="width: 12%;">Harga Satuan</th>
-                <th style="width: 12%;">Total Nilai</th>
-                <th style="width: 6%;">%</th>
-                <th style="width: 7%;">Akum.</th>
-                <th style="width: 5%;">Kat.</th>
+                <th width="3%">No</th>
+                <th width="25%">Nama Barang</th>
+                <th width="7%">Periode</th>
+                <th width="15%">Vendor</th>
+                <th width="8%">Qty</th>
+                <th width="12%">Harga</th>
+                <th width="12%">Total Nilai</th>
+                <th width="6%">%</th>
+                <th width="7%">Akum</th>
+                <th width="5%">Kat</th>
             </tr>
         </thead>
         <tbody>
             @foreach($analisis as $index => $item)
-                <tr class="category-{{ strtolower($item->kategori) }}-row">
-                    <td class="text-center">{{ $index + 1 }}</td>
+                <tr class="cat-{{ strtolower($item->kategori) }}">
+                    <td>{{ $index + 1 }}</td>
                     <td class="text-left">
                         <strong>{{ $item->nama_barang }}</strong>
                         @if($item->no_barang)
-                            <br><small style="color: #666;">{{ $item->no_barang }}</small>
+                            <br><small>{{ $item->no_barang }}</small>
                         @endif
                     </td>
-                    <td class="text-center">{{ $item->periode_name ?? '-' }}</td>
-                    <td class="text-left">{{ Str::limit($item->vendor ?? '-', 20) }}</td>
+                    <td>{{ $item->periode_name ?? '-' }}</td>
+                    <td class="text-left">{{ Str::limit($item->vendor ?? '-', 15) }}</td>
                     <td class="text-right">{{ number_format($item->total_qty, 0, ',', '.') }}</td>
-                    <td class="text-right">Rp {{ number_format($item->harga_satuan ?? 0, 0, ',', '.') }}</td>
-                    <td class="text-right"><strong>Rp {{ number_format($item->total_nilai, 0, ',', '.') }}</strong></td>
-                    <td class="text-center">
-                        {{ $item->persentase }}%
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: {{ min($item->persentase * 5, 100) }}%;"></div>
-                        </div>
-                    </td>
-                    <td class="text-center">{{ $item->akumulasi_persentase }}%</td>
-                    <td class="text-center">
-                        <span class="category-badge {{ $item->kategori }}">{{ $item->kategori }}</span>
+                    <td class="text-right">{{ number_format($item->harga_satuan ?? 0, 0, ',', '.') }}</td>
+                    <td class="text-right"><strong>{{ number_format($item->total_nilai, 0, ',', '.') }}</strong></td>
+                    <td><strong>{{ $item->persentase }}%</strong></td>
+                    <td><strong>{{ $item->akumulasi_persentase }}%</strong></td>
+                    <td>
+                        <span class="badge badge-{{ strtolower($item->kategori) }}">{{ $item->kategori }}</span>
                     </td>
                 </tr>
             @endforeach
@@ -363,14 +270,12 @@
     </table>
 
     <!-- Footer -->
-    <div class="footer no-page-break">
-        <strong>RINGKASAN ANALISIS ABC PARETO</strong><br>
+    <div class="footer">
+        <strong>RINGKASAN:</strong> 
         Kategori A: {{ $stats['kategori_a_count'] }} item ({{ $stats['kontribusi_a'] }}%) | 
         Kategori B: {{ $stats['kategori_b_count'] }} item ({{ $stats['kontribusi_b'] }}%) | 
-        Kategori C: {{ $stats['kategori_c_count'] }} item ({{ $stats['kontribusi_c'] }}%)<br>
-        <em>Basis Analisis: {{ $sortBy === 'quantity' ? 'Kuantitas Stok' : 'Nilai Inventori' }} | 
-        Periode: {{ $periodeInfo ? $periodeInfo['nama_bulan'] : 'Semua Periode' }} | 
-        Total Item: {{ number_format($stats['total_barang'], 0, ',', '.') }}</em>
+        Kategori C: {{ $stats['kategori_c_count'] }} item ({{ $stats['kontribusi_c'] }}%) | 
+        Total: {{ number_format($stats['total_barang'], 0, ',', '.') }} item
     </div>
 </body>
 </html>

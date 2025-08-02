@@ -2,7 +2,6 @@
 
 namespace App\Exports;
 
-use Illuminate\Contracts\View\View;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class ParetoPdfExport
@@ -27,32 +26,19 @@ class ParetoPdfExport
     public function download($filename = null)
     {
         $filename = $filename ?: $this->generateFilename();
-        
-        $pdf = Pdf::loadView('laporan.pareto_pdf', [
-            'analisis' => $this->analisis,
-            'periode' => $this->periode,
-            'periodeInfo' => $this->periodeInfo,
-            'sortBy' => $this->sortBy,
-            'stats' => $this->stats,
-            'totalSumOfBasis' => $this->totalSumOfBasis,
-            // Hapus $exportDate karena kita pakai now() langsung di view
-        ]);
-
-        $pdf->setPaper('A4', 'landscape');
-        $pdf->setOptions([
-            'isHtml5ParserEnabled' => true,
-            'isPhpEnabled' => true,
-            'defaultFont' => 'Arial',
-            'isRemoteEnabled' => true
-        ]);
-
+        $pdf = $this->createPdf();
         return $pdf->download($filename);
     }
 
     public function stream($filename = null)
     {
         $filename = $filename ?: $this->generateFilename();
-        
+        $pdf = $this->createPdf();
+        return $pdf->stream($filename);
+    }
+
+    private function createPdf()
+    {
         $pdf = Pdf::loadView('laporan.pareto_pdf', [
             'analisis' => $this->analisis,
             'periode' => $this->periode,
@@ -60,26 +46,25 @@ class ParetoPdfExport
             'sortBy' => $this->sortBy,
             'stats' => $this->stats,
             'totalSumOfBasis' => $this->totalSumOfBasis,
-            // Hapus $exportDate karena kita pakai now() langsung di view
         ]);
 
-        $pdf->setPaper('A4', 'landscape');
-        $pdf->setOptions([
-            'isHtml5ParserEnabled' => true,
-            'isPhpEnabled' => true,
-            'defaultFont' => 'Arial',
-            'isRemoteEnabled' => true
-        ]);
+        // Setting sederhana untuk PDF
+        $pdf->setPaper('A4', 'landscape')
+            ->setOptions([
+                'defaultFont' => 'Arial',
+                'isHtml5ParserEnabled' => true,
+                'isPhpEnabled' => true,
+            ]);
 
-        return $pdf->stream($filename);
+        return $pdf;
     }
 
     private function generateFilename()
     {
-        $basisText = $this->sortBy === 'quantity' ? 'Kuantitas' : 'Nilai';
-        $periodeText = $this->periodeInfo ? $this->periodeInfo['nama_bulan'] : 'Semua_Periode';
-        $timestamp = now()->format('Y-m-d_H-i-s');
+        $basis = $this->sortBy === 'quantity' ? 'Kuantitas' : 'Nilai';
+        $periode = $this->periodeInfo ? $this->periodeInfo['nama_bulan'] : 'Semua';
+        $date = now()->format('Y-m-d_H-i');
         
-        return "Analisis_ABC_Pareto_{$basisText}_{$periodeText}_{$timestamp}.pdf";
+        return "ABC_Pareto_{$basis}_{$periode}_{$date}.pdf";
     }
 }
