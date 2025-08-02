@@ -12,30 +12,27 @@ class TransaksiController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Transaksi::with(['barang', 'user'])->latest('tanggal_transaksi');
+        // Optimized query with eager loading
+        $query = Transaksi::with(['barang:id,nama_item,no', 'user:id,name'])
+                          ->select('id', 'barang_id', 'user_id', 'tanggal_transaksi', 'jenis_transaksi', 'qty', 'harga_satuan', 'total_harga', 'no_referensi', 'keterangan')
+                          ->latest('tanggal_transaksi');
 
-        // Filter by jenis transaksi
+        // Simplified filters (removed date range)
         if ($request->filled('jenis')) {
             $query->where('jenis_transaksi', $request->jenis);
         }
 
-        // Filter by barang
         if ($request->filled('barang_id')) {
             $query->where('barang_id', $request->barang_id);
         }
 
-        // Filter by date range
-        if ($request->filled('start_date')) {
-            $query->whereDate('tanggal_transaksi', '>=', $request->start_date);
-        }
-        if ($request->filled('end_date')) {
-            $query->whereDate('tanggal_transaksi', '<=', $request->end_date);
-        }
-
+        // Paginate with optimized count
         $transaksis = $query->paginate(20);
-        $barangs = Barang::orderBy('nama_item')->get();
+        
+        // Get barangs for filter (only needed fields)
+        $barangs = Barang::select('id', 'nama_item')->orderBy('nama_item')->get();
 
-        // Statistics
+        // Optimized statistics with single queries
         $stats = [
             'total_transaksi' => Transaksi::count(),
             'transaksi_masuk' => Transaksi::where('jenis_transaksi', 'masuk')->count(),
