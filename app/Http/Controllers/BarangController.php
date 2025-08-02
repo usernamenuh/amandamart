@@ -8,16 +8,100 @@ use App\Imports\BarangImport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class BarangController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $barangs = Barang::with('user')->latest()->get();
-        return view('barang.index', compact('barangs'));
+        // If it's an AJAX request for data, return JSON
+        if ($request->ajax()) {
+            return $this->getBarangData($request);
+        }
+
+        // Cache statistics for better performance (cache for 5 minutes)
+        $stats = Cache::remember('barang_stats', 300, function () {
+            return [
+                'total_count' => Barang::count(),
+                'low_stock_count' => Barang::where('qty', '<', 10)->count(),
+                'total_inventory_value' => Barang::sum('total_cost'),
+                'vendor_count' => Barang::whereNotNull('vendor')->distinct('vendor')->count(),
+                'vendors' => Barang::whereNotNull('vendor')->distinct()->pluck('vendor')->filter()->sort()->values()
+            ];
+        });
+
+        return view('barang.index', compact('stats'));
     }
 
+    public function getBarangData(Request $request)
+    {
+        $search = $request->get('search');
+        $vendor = $request->get('vendor');
+        $periode = $request->get('periode');
+        $stock = $request->get('stock'); // New stock filter
+        $offset = $request->get('offset', 0);
+        $limit = $request->get('limit', 100);
+
+        // Build query with filters
+        $query = Barang::select([
+            'id', 'no', 'nama_item', 'qty', 'cost_price', 'vendor', 
+            'description', 'periode', 'created_at'
+        ]);
+
+        // Apply search filter
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('nama_item', 'LIKE', "%{$search}%")
+                  ->orWhere('no', 'LIKE', "%{$search}%")
+                  ->orWhere('itemid', 'LIKE', "%{$search}%")
+                  ->orWhere('barcode', 'LIKE', "%{$search}%");
+            });
+        }
+
+        // Apply vendor filter
+        if ($vendor) {
+            $query->where('vendor', $vendor);
+        }
+
+        // Apply periode filter
+        if ($periode) {
+            $query->where('periode', $periode);
+        }
+
+        // Apply stock filter
+        if ($stock) {
+            switch ($stock) {
+                case 'low':
+                    $query->where('qty', '<', 10);
+                    break;
+                case 'medium':
+                    $query->whereBetween('qty', [10, 50]);
+                    break;
+                case 'high':
+                    $query->where('qty', '>', 50);
+                    break;
+            }
+        }
+
+        // Get total count for filtered results
+        $totalCount = $query->count();
+
+        // Get paginated results
+        $barangs = $query->latest()
+                        ->offset($offset)
+                        ->limit($limit)
+                        ->get();
+
+        return response()->json([
+            'data' => $barangs,
+            'total' => $totalCount,
+            'hasMore' => ($offset + $limit) < $totalCount
+        ]);
+    }
+
+    // Rest of the methods remain the same as in the previous controller...
     public function create()
     {
         $users = User::all();
@@ -63,36 +147,23 @@ class BarangController extends Controller
         $unit_price = $data['unit_price'] ?? 0;
         $disc_amt = $data['disc_amt'] ?? 0;
         
-        // 1. Auto-calculate Total Cost
+        // Auto-calculations
         $data['total_cost'] = $cost_price * $qty;
-        
-        // 2. Auto-calculate Total Inc PPN (Cost Price + 11% PPN)
         $data['total_inc_ppn'] = $cost_price + ($cost_price * 0.11);
         
-        // 3. Auto-calculate Gross Amount (if unit_price provided)
         if ($unit_price > 0) {
             $data['gross_amt'] = $unit_price * $qty;
-            
-            // 4. Auto-calculate Sales After Discount
             $data['sales_after_discount'] = $data['gross_amt'] - $disc_amt;
-            
-            // 5. Auto-calculate Sales VAT (11% from Sales After Discount)
             $data['sales_vat'] = $data['sales_after_discount'] * 0.11;
-            
-            // 6. Auto-calculate Net Sales Before Tax
             $data['net_sales_bef_tax'] = $data['sales_after_discount'] - $data['sales_vat'];
-            
-            // 7. Auto-calculate Margin (Net Sales Before Tax - Total Cost)
             $data['margin'] = $data['net_sales_bef_tax'] - $data['total_cost'];
             
-            // 8. Auto-calculate Margin Percent
             if ($data['total_cost'] > 0) {
                 $data['margin_percent'] = ($data['margin'] / $data['total_cost']) * 100;
             } else {
                 $data['margin_percent'] = 0;
             }
         } else {
-            // If no unit price, set sales-related fields to 0
             $data['gross_amt'] = 0;
             $data['sales_after_discount'] = 0;
             $data['sales_vat'] = 0;
@@ -101,11 +172,10 @@ class BarangController extends Controller
             $data['margin_percent'] = 0;
         }
 
-        // Convert date to integer if provided (Excel format)
+        // Date/time conversion
         if ($request->filled('date')) {
             $date = \DateTime::createFromFormat('Y-m-d', $request->date);
             if ($date) {
-                // Convert to Excel date serial number (days since 1900-01-01)
                 $excel_epoch = \DateTime::createFromFormat('Y-m-d', '1900-01-01');
                 $data['date'] = $date->diff($excel_epoch)->days + 1;
             } else {
@@ -115,11 +185,9 @@ class BarangController extends Controller
             $data['date'] = null;
         }
 
-        // Convert time to decimal if provided
         if ($request->filled('time')) {
             $time = \DateTime::createFromFormat('H:i', $request->time);
             if ($time) {
-                // Convert to decimal (fraction of day)
                 $hours = (int)$time->format('H');
                 $minutes = (int)$time->format('i');
                 $data['time'] = ($hours + ($minutes / 60)) / 24;
@@ -131,6 +199,7 @@ class BarangController extends Controller
         }
 
         Barang::create($data);
+        Cache::forget('barang_stats');
 
         return redirect()->route('barang.index')->with('success', 'Data barang berhasil ditambahkan!');
     }
@@ -185,36 +254,23 @@ class BarangController extends Controller
         $unit_price = $data['unit_price'] ?? 0;
         $disc_amt = $data['disc_amt'] ?? 0;
         
-        // 1. Auto-calculate Total Cost
+        // Auto-calculations
         $data['total_cost'] = $cost_price * $qty;
-        
-        // 2. Auto-calculate Total Inc PPN (Cost Price + 11% PPN)
         $data['total_inc_ppn'] = $cost_price + ($cost_price * 0.11);
         
-        // 3. Auto-calculate Gross Amount (if unit_price provided)
         if ($unit_price > 0) {
             $data['gross_amt'] = $unit_price * $qty;
-            
-            // 4. Auto-calculate Sales After Discount
             $data['sales_after_discount'] = $data['gross_amt'] - $disc_amt;
-            
-            // 5. Auto-calculate Sales VAT (11% from Sales After Discount)
             $data['sales_vat'] = $data['sales_after_discount'] * 0.11;
-            
-            // 6. Auto-calculate Net Sales Before Tax
             $data['net_sales_bef_tax'] = $data['sales_after_discount'] - $data['sales_vat'];
-            
-            // 7. Auto-calculate Margin (Net Sales Before Tax - Total Cost)
             $data['margin'] = $data['net_sales_bef_tax'] - $data['total_cost'];
             
-            // 8. Auto-calculate Margin Percent
             if ($data['total_cost'] > 0) {
                 $data['margin_percent'] = ($data['margin'] / $data['total_cost']) * 100;
             } else {
                 $data['margin_percent'] = 0;
             }
         } else {
-            // If no unit price, set sales-related fields to 0
             $data['gross_amt'] = 0;
             $data['sales_after_discount'] = 0;
             $data['sales_vat'] = 0;
@@ -223,11 +279,10 @@ class BarangController extends Controller
             $data['margin_percent'] = 0;
         }
 
-        // Convert date to integer if provided (Excel format)
+        // Date/time conversion
         if ($request->filled('date')) {
             $date = \DateTime::createFromFormat('Y-m-d', $request->date);
             if ($date) {
-                // Convert to Excel date serial number (days since 1900-01-01)
                 $excel_epoch = \DateTime::createFromFormat('Y-m-d', '1900-01-01');
                 $data['date'] = $date->diff($excel_epoch)->days + 1;
             } else {
@@ -237,11 +292,9 @@ class BarangController extends Controller
             $data['date'] = null;
         }
 
-        // Convert time to decimal if provided
         if ($request->filled('time')) {
             $time = \DateTime::createFromFormat('H:i', $request->time);
             if ($time) {
-                // Convert to decimal (fraction of day)
                 $hours = (int)$time->format('H');
                 $minutes = (int)$time->format('i');
                 $data['time'] = ($hours + ($minutes / 60)) / 24;
@@ -253,6 +306,7 @@ class BarangController extends Controller
         }
 
         $barang->update($data);
+        Cache::forget('barang_stats');
 
         return redirect()->route('barang.show', $barang)->with('success', 'Data barang berhasil diperbarui!');
     }
@@ -260,18 +314,14 @@ class BarangController extends Controller
     public function destroy(Barang $barang)
     {
         $barang->delete();
+        Cache::forget('barang_stats');
         return redirect()->route('barang.index')->with('success', 'Data barang berhasil dihapus!');
-    }
-
-    public function importForm()
-    {
-        return view('barang.import');
     }
 
     public function import(Request $request)
     {
         $request->validate([
-            'file' => 'required|mimes:xlsx,xls,csv|max:10240', // max 10MB
+            'file' => 'required|mimes:xlsx,xls,csv|max:10240',
         ], [
             'file.required' => 'File import wajib dipilih',
             'file.mimes' => 'File harus berformat Excel (.xlsx, .xls) atau CSV',
@@ -283,6 +333,7 @@ class BarangController extends Controller
             Excel::import($import, $request->file('file'));
             
             $stats = $import->getImportStats();
+            Cache::forget('barang_stats');
             
             $message = "Import selesai! ";
             $message .= "Data baru: {$stats['imported']}, ";

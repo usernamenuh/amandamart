@@ -79,12 +79,12 @@
             <div class="p-8">
                 <!-- Basic Information -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                    <!-- Item ID -->
+                    <!-- No -->
                     <div class="bg-gray-50 rounded-xl p-6">
-                        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Item ID</h3>
+                        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">No</h3>
                         <div class="flex items-center">
                             <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                                {{ $barang->itemid ?? 'N/A' }}
+                                {{ $barang->no ?? 'N/A' }}
                             </span>
                         </div>
                     </div>

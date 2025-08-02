@@ -12,7 +12,7 @@ class TransaksiController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Transaksi::with(['barang', 'user'])->latest();
+        $query = Transaksi::with(['barang', 'user'])->latest('tanggal_transaksi');
 
         // Filter by jenis transaksi
         if ($request->filled('jenis')) {
@@ -38,8 +38,8 @@ class TransaksiController extends Controller
         // Statistics
         $stats = [
             'total_transaksi' => Transaksi::count(),
-            'transaksi_masuk' => Transaksi::masuk()->count(),
-            'transaksi_keluar' => Transaksi::keluar()->count(),
+            'transaksi_masuk' => Transaksi::where('jenis_transaksi', 'masuk')->count(),
+            'transaksi_keluar' => Transaksi::where('jenis_transaksi', 'keluar')->count(),
             'total_nilai' => Transaksi::sum('total_harga'),
         ];
 
@@ -59,7 +59,6 @@ class TransaksiController extends Controller
             'tanggal_transaksi' => 'required|date',
             'jenis_transaksi' => 'required|in:masuk,keluar',
             'qty' => 'required|integer|min:1',
-            'harga_satuan' => 'required|numeric|min:0',
             'keterangan' => 'nullable|string|max:1000',
             'no_referensi' => 'nullable|string|max:255',
         ], [
@@ -69,37 +68,38 @@ class TransaksiController extends Controller
             'jenis_transaksi.required' => 'Jenis transaksi wajib dipilih',
             'qty.required' => 'Quantity wajib diisi',
             'qty.min' => 'Quantity minimal 1',
-            'harga_satuan.required' => 'Harga satuan wajib diisi',
         ]);
+
+        $barang = Barang::findOrFail($request->barang_id);
 
         // Check stock for keluar transaction
         if ($request->jenis_transaksi === 'keluar') {
-            $barang = Barang::find($request->barang_id);
-            $currentStock = $barang->qty;
-            
-            if ($currentStock < $request->qty) {
+            if ($barang->qty < $request->qty) {
                 return back()->withErrors([
-                    'qty' => "Stok tidak mencukupi. Stok tersedia: {$currentStock}"
+                    'qty' => "Stok tidak mencukupi. Stok tersedia: {$barang->qty}"
                 ])->withInput();
             }
         }
 
-        DB::transaction(function () use ($request) {
-            // Create transaction - simple calculation
+        DB::transaction(function () use ($request, $barang) {
+            // Auto-determine harga_satuan based on transaction type
+            $hargaSatuan = $request->jenis_transaksi === 'masuk' 
+                ? $barang->cost_price 
+                : ($barang->unit_price ?: $barang->cost_price);
+
+            // Create transaction (calculations will be done automatically in Model)
             $transaksi = Transaksi::create([
                 'barang_id' => $request->barang_id,
                 'user_id' => Auth::id(),
                 'tanggal_transaksi' => $request->tanggal_transaksi,
                 'jenis_transaksi' => $request->jenis_transaksi,
                 'qty' => $request->qty,
-                'harga_satuan' => $request->harga_satuan,
-                'total_harga' => $request->qty * $request->harga_satuan,
+                'harga_satuan' => $hargaSatuan,
                 'keterangan' => $request->keterangan,
                 'no_referensi' => $request->no_referensi,
             ]);
 
             // Update barang stock
-            $barang = Barang::find($request->barang_id);
             if ($request->jenis_transaksi === 'masuk') {
                 $barang->increment('qty', $request->qty);
             } else {
@@ -112,8 +112,18 @@ class TransaksiController extends Controller
 
     public function show(Transaksi $transaksi)
     {
+        // Load relationships
         $transaksi->load(['barang', 'user']);
-        return view('transaksi.show', compact('transaksi'));
+        
+        // Get related statistics for this specific item
+        $stats = [
+            'total_transaksi_barang' => Transaksi::where('barang_id', $transaksi->barang_id)->count(),
+            'transaksi_masuk_barang' => Transaksi::where('barang_id', $transaksi->barang_id)->where('jenis_transaksi', 'masuk')->count(),
+            'transaksi_keluar_barang' => Transaksi::where('barang_id', $transaksi->barang_id)->where('jenis_transaksi', 'keluar')->count(),
+            'total_nilai_barang' => Transaksi::where('barang_id', $transaksi->barang_id)->sum('total_harga'),
+        ];
+        
+        return view('transaksi.show', compact('transaksi', 'stats'));
     }
 
     public function edit(Transaksi $transaksi)
@@ -129,7 +139,6 @@ class TransaksiController extends Controller
             'tanggal_transaksi' => 'required|date',
             'jenis_transaksi' => 'required|in:masuk,keluar',
             'qty' => 'required|integer|min:1',
-            'harga_satuan' => 'required|numeric|min:0',
             'keterangan' => 'nullable|string|max:1000',
             'no_referensi' => 'nullable|string|max:255',
         ]);
@@ -137,40 +146,45 @@ class TransaksiController extends Controller
         DB::transaction(function () use ($request, $transaksi) {
             // Revert old transaction effect on stock
             $oldBarang = Barang::find($transaksi->barang_id);
-            if ($transaksi->jenis_transaksi === 'masuk') {
-                $oldBarang->decrement('qty', $transaksi->qty);
-            } else {
-                $oldBarang->increment('qty', $transaksi->qty);
+            if ($oldBarang) {
+                if ($transaksi->jenis_transaksi === 'masuk') {
+                    $oldBarang->decrement('qty', $transaksi->qty);
+                } else {
+                    $oldBarang->increment('qty', $transaksi->qty);
+                }
             }
+
+            $barang = Barang::findOrFail($request->barang_id);
 
             // Check stock for new keluar transaction
             if ($request->jenis_transaksi === 'keluar') {
-                $newBarang = Barang::find($request->barang_id);
-                $currentStock = $newBarang->qty;
-                
+                $currentStock = $barang->qty;
                 if ($currentStock < $request->qty) {
                     throw new \Exception("Stok tidak mencukupi. Stok tersedia: {$currentStock}");
                 }
             }
 
-            // Update transaction
+            // Auto-determine harga_satuan based on transaction type
+            $hargaSatuan = $request->jenis_transaksi === 'masuk' 
+                ? $barang->cost_price 
+                : ($barang->unit_price ?: $barang->cost_price);
+
+            // Update transaction (calculations will be done automatically in Model)
             $transaksi->update([
                 'barang_id' => $request->barang_id,
                 'tanggal_transaksi' => $request->tanggal_transaksi,
                 'jenis_transaksi' => $request->jenis_transaksi,
                 'qty' => $request->qty,
-                'harga_satuan' => $request->harga_satuan,
-                'total_harga' => $request->qty * $request->harga_satuan,
+                'harga_satuan' => $hargaSatuan,
                 'keterangan' => $request->keterangan,
                 'no_referensi' => $request->no_referensi,
             ]);
 
             // Apply new transaction effect on stock
-            $newBarang = Barang::find($request->barang_id);
             if ($request->jenis_transaksi === 'masuk') {
-                $newBarang->increment('qty', $request->qty);
+                $barang->increment('qty', $request->qty);
             } else {
-                $newBarang->decrement('qty', $request->qty);
+                $barang->decrement('qty', $request->qty);
             }
         });
 
@@ -182,10 +196,12 @@ class TransaksiController extends Controller
         DB::transaction(function () use ($transaksi) {
             // Revert transaction effect on stock
             $barang = Barang::find($transaksi->barang_id);
-            if ($transaksi->jenis_transaksi === 'masuk') {
-                $barang->decrement('qty', $transaksi->qty);
-            } else {
-                $barang->increment('qty', $transaksi->qty);
+            if ($barang) {
+                if ($transaksi->jenis_transaksi === 'masuk') {
+                    $barang->decrement('qty', $transaksi->qty);
+                } else {
+                    $barang->increment('qty', $transaksi->qty);
+                }
             }
 
             // Delete transaction

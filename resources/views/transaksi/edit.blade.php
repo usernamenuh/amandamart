@@ -7,619 +7,471 @@
     <!-- Header -->
     <x-dashboard-header 
         title="Edit Transaksi" 
-        subtitle="Perbarui informasi data transaksi dan detail item"
+        subtitle="Perbarui informasi transaksi barang"
         :showTabs="true"
         activeTab="transaksi"
         :showBanner="true"
     />
 
     <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-2 lg:px-8 pt- pb-8">
+     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
         <!-- Breadcrumb -->
         <nav class="flex mb-8" aria-label="Breadcrumb">
             <ol class="inline-flex items-center space-x-1 md:space-x-3">
                 <li class="inline-flex items-center">
                     <a href="{{ route('transaksi.index') }}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                        </svg>
+                        <i class="fas fa-exchange-alt mr-2"></i>
                         Data Transaksi
                     </a>
                 </li>
                 <li>
                     <div class="flex items-center">
-                        <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-                        </svg>
-                        <a href="{{ route('transaksi.show', $transaksi->id) }}" class="ml-1 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">{{ $transaksi->nomor }}</a>
-                    </div>
-                </li>
-                <li>
-                    <div class="flex items-center">
-                        <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-                        </svg>
-                        <span class="ml-1 text-sm font-medium text-gray-500">Edit</span>
+                        <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                        <span class="ml-1 text-sm font-medium text-gray-500">Edit Transaksi</span>
                     </div>
                 </li>
             </ol>
         </nav>
 
-        @if (session('success'))
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-                <span class="block sm:inline">{{ session('success') }}</span>
+        <!-- Form Card -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <!-- Card Header -->
+            <div class="px-6 py-5 border-b border-gray-200 bg-gradient-to-r from-yellow-50 to-orange-50">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center mr-4">
+                            <i class="fas fa-edit text-yellow-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900">Form Edit Transaksi</h3>
+                            <p class="text-sm text-gray-600 mt-1">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Harga otomatis dari master barang (Masuk: Harga Beli, Keluar: Harga Jual)
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <a href="{{ route('transaksi.show', $transaksi->id) }}" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200">
+                            <i class="fas fa-eye mr-2"></i>
+                            Lihat Detail
+                        </a>
+                        <a href="{{ route('transaksi.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-lg transition-colors duration-200">
+                            <i class="fas fa-arrow-left mr-2"></i>
+                            Kembali
+                        </a>
+                    </div>
+                </div>
             </div>
-        @endif
 
-        @if (session('error'))
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-                <span class="block sm:inline">{{ session('error') }}</span>
-            </div>
-        @endif
-
-        <form action="{{ route('transaksi.update', $transaksi->id) }}" method="POST" class="space-y-6">
-            @csrf
-            @method('PUT')
-            
-            <!-- Main Form Card -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Left Column - Transaction Info -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                    <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-yellow-50 to-orange-50">
-                        <div class="flex items-center justify-between">
-                            <h3 class="text-lg font-semibold text-gray-900 flex items-center">
-                                <svg class="w-5 h-5 mr-2 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                </svg>
-                                Edit Informasi Transaksi
-                            </h3>
-                            <div class="flex space-x-2">
-                                <a href="{{ route('transaksi.show', $transaksi->id) }}" 
-                                   class="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                    </svg>
-                                    Lihat Detail
-                                </a>
+            <!-- Form -->
+            <div class="p-8">
+                <form action="{{ route('transaksi.update', $transaksi->id) }}" method="POST" class="space-y-6">
+                    @csrf
+                    @method('PUT')
+                    
+                    <!-- Current Transaction Info -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <h4 class="text-sm font-semibold text-blue-900 mb-2">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Informasi Transaksi Saat Ini
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                            <div>
+                                <span class="text-blue-700 font-medium">Barang:</span>
+                                <div class="text-blue-900 font-semibold">{{ $transaksi->barang->nama_item }}</div>
+                            </div>
+                            <div>
+                                <span class="text-blue-700 font-medium">Jenis:</span>
+                                <div class="text-blue-900 font-semibold">{{ ucfirst($transaksi->jenis_transaksi) }}</div>
+                            </div>
+                            <div>
+                                <span class="text-blue-700 font-medium">Quantity:</span>
+                                <div class="text-blue-900 font-semibold">{{ number_format($transaksi->qty, 0) }}</div>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="p-6 space-y-4">
-                        <!-- Tanggal -->
+                    <!-- Basic Information -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Tanggal Transaksi -->
                         <div class="space-y-2">
-                            <label for="tanggal" class="block text-sm font-semibold text-gray-700">
-                                Tanggal <span class="text-red-500">*</span>
+                            <label for="tanggal_transaksi" class="block text-sm font-semibold text-gray-700">
+                                <i class="fas fa-calendar mr-1"></i>
+                                Tanggal Transaksi <span class="text-red-500">*</span>
                             </label>
-                            <input type="date" 
-                                   name="tanggal" 
-                                   id="tanggal" 
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 @error('tanggal') border-red-500 ring-2 ring-red-200 @enderror" 
-                                   value="{{ old('tanggal', $transaksi->tanggal) }}" 
-                                   >
-                            @error('tanggal')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                            <input type="date" name="tanggal_transaksi" id="tanggal_transaksi" 
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 focus:outline-none transition-all duration-200 @error('tanggal_transaksi') border-red-500 ring-2 ring-red-200 @enderror" 
+                                   value="{{ old('tanggal_transaksi', $transaksi->tanggal_transaksi->format('Y-m-d')) }}" required>
+                            @error('tanggal_transaksi')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
 
-                        <!-- Nomor Transaksi -->
+                        <!-- Jenis Transaksi -->
                         <div class="space-y-2">
-                            <label for="nomor" class="block text-sm font-semibold text-gray-700">
-                                Nomor Transaksi <span class="text-red-500">*</span>
+                            <label for="jenis_transaksi" class="block text-sm font-semibold text-gray-700">
+                                <i class="fas fa-tags mr-1"></i>
+                                Jenis Transaksi <span class="text-red-500">*</span>
                             </label>
-                            <input type="text" 
-                                   name="nomor" 
-                                   id="nomor" 
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 @error('nomor') border-red-500 ring-2 ring-red-200 @enderror" 
-                                   value="{{ old('nomor', $transaksi->nomor) }}" 
-                                   placeholder="Masukkan nomor transaksi"
-                                   >
-                            @error('nomor')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                            <select name="jenis_transaksi" id="jenis_transaksi" 
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 focus:outline-none transition-all duration-200 @error('jenis_transaksi') border-red-500 ring-2 ring-red-200 @enderror" required>
+                                <option value="">Pilih Jenis Transaksi</option>
+                                <option value="masuk" {{ old('jenis_transaksi', $transaksi->jenis_transaksi) === 'masuk' ? 'selected' : '' }}>
+                                    Barang Masuk (Pembelian)
+                                </option>
+                                <option value="keluar" {{ old('jenis_transaksi', $transaksi->jenis_transaksi) === 'keluar' ? 'selected' : '' }}>
+                                    Barang Keluar (Penjualan)
+                                </option>
+                            </select>
+                            @error('jenis_transaksi')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
+                    </div>
 
-                        <!-- Customer -->
-                        <div class="space-y-2">
-                            <label for="customer" class="block text-sm font-semibold text-gray-700">
-                                Customer <span class="text-red-500">*</span>
-                            </label>
-                            <input type="text" 
-                                   name="customer" 
-                                   id="customer" 
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 @error('customer') border-red-500 ring-2 ring-red-200 @enderror" 
-                                   value="{{ old('customer', $transaksi->customer) }}" 
-                                   placeholder="Nama customer"
-                                   >
-                            @error('customer')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
+                    <!-- Barang Selection -->
+                    <div class="space-y-2">
+                        <label for="barang_id" class="block text-sm font-semibold text-gray-700">
+                            <i class="fas fa-box mr-1"></i>
+                            Pilih Barang <span class="text-red-500">*</span>
+                        </label>
+                        <select name="barang_id" id="barang_id" 
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 focus:outline-none transition-all duration-200 @error('barang_id') border-red-500 ring-2 ring-red-200 @enderror" required>
+                            <option value="">Pilih Barang</option>
+                            @foreach($barangs as $barang)
+                                <option value="{{ $barang->id }}" {{ old('barang_id', $transaksi->barang_id) == $barang->id ? 'selected' : '' }}
+                                        data-qty="{{ $barang->qty }}" 
+                                        data-cost="{{ $barang->cost_price }}" 
+                                        data-unit="{{ $barang->unit_price }}"
+                                        data-disc="{{ $barang->disc_amt }}"
+                                        data-vendor="{{ $barang->vendor }}">
+                                    {{ $barang->nama_item }} 
+                                    @if($barang->no) - No: {{ $barang->no }} @endif
+                                    (Stok: {{ number_format($barang->qty, 0) }})
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('barang_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                    </div>
 
-                        <!-- Ongkos Kirim -->
-                        <div class="space-y-2">
-                            <label for="ongkir" class="block text-sm font-semibold text-gray-700">
-                                Ongkos Kirim
-                            </label>
-                            <div class="relative">
-                                <span class="absolute left-3 top-3 text-gray-500">Rp</span>
-                                @php
-                                    $ongkirValue = old('ongkir', $transaksi->ongkir);
-                                    $ongkirFormatted = $ongkirValue ? number_format($ongkirValue, 0, ',', '.') : '';
-                                @endphp
-                                <input type="text" 
-                                       name="ongkir_display" 
-                                       id="ongkir_display" 
-                                       class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200 @error('ongkir') border-red-500 ring-2 ring-red-200 @enderror" 
-                                       value="{{ $ongkirFormatted }}" 
-                                       placeholder="0">
-                                <input type="hidden" name="ongkir" id="ongkir" value="{{ $ongkirValue }}">
+                    <!-- Barang Info Display -->
+                    <div id="barang-info" class="hidden p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <h4 class="text-sm font-semibold text-blue-900 mb-3">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Informasi Barang:
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                            <div>
+                                <span class="text-blue-700 font-medium">
+                                    <i class="fas fa-warehouse mr-1"></i>
+                                    Stok Tersedia:
+                                </span>
+                                <div id="current-stock" class="text-blue-900 font-semibold"></div>
                             </div>
-                            @error('ongkir')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                            <div>
+                                <span class="text-blue-700 font-medium">
+                                    <i class="fas fa-money-bill mr-1"></i>
+                                    Harga Beli:
+                                </span>
+                                <div id="cost-price" class="text-blue-900 font-semibold"></div>
+                            </div>
+                            <div>
+                                <span class="text-blue-700 font-medium">
+                                    <i class="fas fa-tag mr-1"></i>
+                                    Harga Jual:
+                                </span>
+                                <div id="unit-price" class="text-blue-900 font-semibold"></div>
+                            </div>
+                            <div>
+                                <span class="text-blue-700 font-medium">
+                                    <i class="fas fa-truck mr-1"></i>
+                                    Vendor:
+                                </span>
+                                <div id="vendor-name" class="text-blue-900 font-semibold"></div>
+                            </div>
                         </div>
+                    </div>
 
-                        <!-- Total Diskon Transaksi (Read-only) -->
+                    <!-- Transaction Details -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Quantity -->
                         <div class="space-y-2">
-                            <label for="total_diskon_transaksi" class="block text-sm font-semibold text-gray-700">
-                                Total Diskon Transaksi
+                            <label for="qty" class="block text-sm font-semibold text-gray-700">
+                                <i class="fas fa-cubes mr-1"></i>
+                                Quantity <span class="text-red-500">*</span>
                             </label>
-                            <div class="relative">
-                                <span class="absolute left-3 top-3 text-gray-500">Rp</span>
-                                <input type="text" 
-                                       id="total_diskon_transaksi" 
-                                       class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed text-gray-700" 
-                                       value="{{ number_format($transaksi->diskon, 0, ',', '.') }}" 
-                                       readonly>
+                            <input type="number" name="qty" id="qty" 
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 focus:outline-none transition-all duration-200 @error('qty') border-red-500 ring-2 ring-red-200 @enderror" 
+                                   value="{{ old('qty', $transaksi->qty) }}" min="1" placeholder="1" required>
+                            @error('qty')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            <div id="stock-warning" class="hidden text-sm text-red-600 font-medium">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>
+                                Quantity melebihi stok yang tersedia!
                             </div>
                         </div>
 
-                        <!-- Jumlah Print -->
+                        <!-- Harga Satuan (Display Only) -->
                         <div class="space-y-2">
-                            <label for="jum_print" class="block text-sm font-semibold text-gray-700">
-                                Jumlah Print
+                            <label class="block text-sm font-semibold text-gray-700">
+                                <i class="fas fa-rupiah-sign mr-1"></i>
+                                Harga Satuan (Otomatis)
                             </label>
-                            <input type="number" 
-                                   name="jum_print" 
-                                   id="jum_print" 
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 @error('jum_print') border-red-500 ring-2 ring-red-200 @enderror" 
-                                   value="{{ old('jum_print', $transaksi->jum_print) }}" 
-                                   min="0"
-                                   placeholder="0">
-                            @error('jum_print')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                            <div class="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 text-gray-700">
+                                <span id="harga-display">Pilih barang dan jenis transaksi</span>
+                            </div>
+                            <p class="text-xs text-gray-500">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Masuk: Harga Beli | Keluar: Harga Jual
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Calculation Preview -->
+                    <div class="bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4">
+                            <i class="fas fa-calculator mr-2"></i>
+                            Preview Perhitungan
+                        </h4>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-700">
+                                    <i class="fas fa-equals mr-1"></i>
+                                    Subtotal (Qty × Harga):
+                                </span>
+                                <span id="subtotal" class="font-semibold text-gray-900">Rp 0</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-700">
+                                    <i class="fas fa-minus mr-1"></i>
+                                    Diskon Total:
+                                </span>
+                                <span id="total-discount" class="font-semibold text-orange-600">- Rp 0</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-700">
+                                    <i class="fas fa-check mr-1"></i>
+                                    Subtotal Setelah Diskon:
+                                </span>
+                                <span id="subtotal-after-disc" class="font-semibold text-blue-600">Rp 0</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-700">
+                                    <i class="fas fa-plus mr-1"></i>
+                                    PPN (11%) - Hanya Penjualan:
+                                </span>
+                                <span id="ppn-amount" class="font-semibold text-purple-600">+ Rp 0</span>
+                            </div>
+                            <hr class="border-gray-300">
+                            <div class="flex justify-between items-center text-lg">
+                                <span class="font-bold text-gray-800">
+                                    <i class="fas fa-coins mr-1"></i>
+                                    TOTAL AKHIR:
+                                </span>
+                                <span id="total-harga" class="font-bold text-green-600">Rp 0</span>
+                            </div>
+                        </div>
+                        <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <p class="text-sm text-yellow-800">
+                                <i class="fas fa-lightbulb mr-1"></i>
+                                <strong>Logika Perhitungan:</strong>
+                            </p>
+                            <ul class="text-xs text-yellow-700 mt-1 space-y-1">
+                                <li>• <strong>Barang Masuk:</strong> Harga Beli × Qty (tanpa PPN)</li>
+                                <li>• <strong>Barang Keluar:</strong> (Harga Jual × Qty) - Diskon + PPN 11%</li>
+                                <li>• Diskon dan PPN diambil dari data master barang</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Additional Information -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- No Referensi -->
+                        <div class="space-y-2">
+                            <label for="no_referensi" class="block text-sm font-semibold text-gray-700">
+                                <i class="fas fa-hashtag mr-1"></i>
+                                No. Referensi
+                            </label>
+                            <input type="text" name="no_referensi" id="no_referensi" 
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 focus:outline-none transition-all duration-200 @error('no_referensi') border-red-500 ring-2 ring-red-200 @enderror" 
+                                   value="{{ old('no_referensi', $transaksi->no_referensi) }}" placeholder="Masukkan nomor referensi">
+                            @error('no_referensi')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
 
                         <!-- Keterangan -->
                         <div class="space-y-2">
                             <label for="keterangan" class="block text-sm font-semibold text-gray-700">
+                                <i class="fas fa-comment mr-1"></i>
                                 Keterangan
                             </label>
-                            <textarea name="keterangan" 
-                                      id="keterangan" 
-                                      rows="3" 
-                                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 @error('keterangan') border-red-500 ring-2 ring-red-200 @enderror"
-                                      placeholder="Keterangan tambahan...">{{ old('keterangan', $transaksi->keterangan) }}</textarea>
-                            @error('keterangan')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                            <textarea name="keterangan" id="keterangan" rows="3" 
+                                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 focus:outline-none transition-all duration-200 @error('keterangan') border-red-500 ring-2 ring-red-200 @enderror"
+                                      placeholder="Masukkan keterangan transaksi">{{ old('keterangan', $transaksi->keterangan) }}</textarea>
+                            @error('keterangan')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
                     </div>
-                </div>
 
-                <!-- Right Column - Transaction Details -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                    <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-green-50 to-emerald-50">
-                        <div class="flex items-center justify-between">
-                            <h3 class="text-lg font-semibold text-gray-900 flex items-center">
-                                <svg class="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                                </svg>
-                                Detail Transaksi
-                            </h3>
-                            <button type="button" 
-                                    id="add-detail-row"
-                                    class="inline-flex items-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors">
-                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                                </svg>
-                                Tambah Item
-                            </button>
-                        </div>
+                    <!-- Submit Button -->
+                    <div class="flex justify-end space-x-4 pt-8 border-t border-gray-200">
+                        <a href="{{ route('transaksi.show', $transaksi->id) }}" 
+                           class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-all duration-200 font-medium">
+                            <i class="fas fa-times mr-2"></i>
+                            Batal
+                        </a>
+                        <button type="submit" id="submit-btn"
+                                class="px-8 py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-all duration-200 font-medium shadow-sm hover:shadow-md">
+                            <i class="fas fa-save mr-2"></i>
+                            Update Transaksi
+                        </button>
                     </div>
-                    
-                    <div class="p-6">
-                        <div id="transaction-details-container" class="space-y-4 max-h-96 overflow-y-auto">
-                            @if (old('details'))
-                                @foreach (old('details') as $index => $detail)
-                                    <div class="detail-item border border-gray-200 rounded-lg p-4 bg-gray-50 relative">
-                                        <div class="flex items-center justify-between mb-4">
-                                            <h4 class="text-sm font-medium text-gray-700">Item #{{ $index + 1 }}</h4>
-                                            <button type="button" class="text-red-500 hover:text-red-700 transition-colors remove-detail-row">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                        
-                                        <div class="grid grid-cols-1 gap-3">
-                                            <!-- Barang -->
-                                            <div class="space-y-1">
-                                                <label class="block text-xs font-medium text-gray-700">Barang <span class="text-red-500">*</span></label>
-                                                <select name="details[{{ $index }}][barang_id]" 
-                                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm" 
-                                                        >
-                                                    <option value="">Pilih Barang</option>
-                                                    @foreach($barangs as $barang)
-                                                        <option value="{{ $barang->id }}" {{ (old("details.$index.barang_id", $detail['barang_id'] ?? '') == $barang->id) ? 'selected' : '' }}>
-                                                            {{ $barang->nama }} ({{ $barang->kode }})
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-
-                                            <div class="grid grid-cols-2 gap-3">
-                                                <!-- Kuantitas -->
-                                                <div class="space-y-1">
-                                                    <label class="block text-xs font-medium text-gray-700">Kuantitas <span class="text-red-500">*</span></label>
-                                                    <input type="number" 
-                                                           step="0.01"
-                                                           name="details[{{ $index }}][qty]" 
-                                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm" 
-                                                           value="{{ (float)(old("details.$index.qty", $detail['qty'] ?? 1)) == (int)(old("details.$index.qty", $detail['qty'] ?? 1)) ? (int)(old("details.$index.qty", $detail['qty'] ?? 1)) : old("details.$index.qty", $detail['qty'] ?? 1) }}" 
-                                                           min="0.01">
-                                                </div>
-
-                                                <!-- Harga Satuan -->
-                                                <div class="space-y-1">
-                                                    <label class="block text-xs font-medium text-gray-700">Harga Satuan <span class="text-red-500">*</span></label>
-                                                    <div class="relative">
-                                                        <span class="absolute left-2 top-2 text-gray-500 text-xs">Rp</span>
-                                                        @php
-                                                            $hargaSatuanValue = old("details.$index.harga_satuan", $detail['harga_satuan'] ?? 0);
-                                                            $hargaSatuanFormatted = $hargaSatuanValue ? number_format($hargaSatuanValue, 0, ',', '.') : '';
-                                                        @endphp
-                                                        <input type="text" 
-                                                               name="details[{{ $index }}][harga_satuan_display]" 
-                                                               class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none text-sm price-input" 
-                                                               value="{{ $hargaSatuanFormatted }}" 
-                                                               placeholder="0">
-                                                        <input type="hidden" name="details[{{ $index }}][harga_satuan]" value="{{ $hargaSatuanValue }}">
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <!-- Diskon Item -->
-                                            <div class="space-y-1">
-                                                <label class="block text-xs font-medium text-gray-700">Diskon Item</label>
-                                                <div class="relative">
-                                                    <span class="absolute left-2 top-2 text-gray-500 text-xs">Rp</span>
-                                                    @php
-                                                        $diskonValue = old("details.$index.diskon", (float)($detail['diskon'] ?? 0));
-                                                        $diskonFormatted = $diskonValue ? number_format($diskonValue, 0, ',', '.') : '';
-                                                    @endphp
-                                                    <input type="text" 
-                                                           name="details[{{ $index }}][diskon_display]" 
-                                                           class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none text-sm price-input" 
-                                                           value="{{ $diskonFormatted }}" 
-                                                           placeholder="0">
-                                                    <input type="hidden" name="details[{{ $index }}][diskon]" value="{{ $diskonValue }}">
-                                                </div>
-                                            </div>
-
-                                            <!-- Keterangan Item -->
-                                            <div class="space-y-1">
-                                                <label class="block text-xs font-medium text-gray-700">Keterangan Item</label>
-                                                <textarea name="details[{{ $index }}][keterangan]" 
-                                                          rows="2" 
-                                                          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                                          placeholder="Keterangan item...">{{ old("details.$index.keterangan", $detail['keterangan'] ?? '') }}</textarea>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            @else
-                                @foreach ($transaksi->details as $index => $detail)
-                                    <div class="detail-item border border-gray-200 rounded-lg p-4 bg-gray-50 relative">
-                                        <div class="flex items-center justify-between mb-4">
-                                            <h4 class="text-sm font-medium text-gray-700">Item #{{ $index + 1 }}</h4>
-                                            <button type="button" class="text-red-500 hover:text-red-700 transition-colors remove-detail-row">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                        
-                                        <div class="grid grid-cols-1 gap-3">
-                                            <!-- Barang -->
-                                            <div class="space-y-1">
-                                                <label class="block text-xs font-medium text-gray-700">Barang <span class="text-red-500">*</span></label>
-                                                <select name="details[{{ $index }}][barang_id]" 
-                                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm" 
-                                                        >
-                                                    <option value="">Pilih Barang</option>
-                                                    @foreach($barangs as $barang)
-                                                        <option value="{{ $barang->id }}" {{ ($detail->barang_id == $barang->id) ? 'selected' : '' }}>
-                                                            {{ $barang->nama }} ({{ $barang->kode }})
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-
-                                            <div class="grid grid-cols-2 gap-3">
-                                                <!-- Kuantitas -->
-                                                <div class="space-y-1">
-                                                    <label class="block text-xs font-medium text-gray-700">Kuantitas <span class="text-red-500">*</span></label>
-                                                    <input type="number" 
-                                                           step="0.01"
-                                                           name="details[{{ $index }}][qty]" 
-                                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm" 
-                                                           value="{{ (float)$detail->qty == (int)$detail->qty ? (int)$detail->qty : $detail->qty }}" 
-                                                            
-                                                           min="0.01">
-                                                </div>
-
-                                                <!-- Harga Satuan -->
-                                                <div class="space-y-1">
-                                                    <label class="block text-xs font-medium text-gray-700">Harga Satuan <span class="text-red-500">*</span></label>
-                                                    <div class="relative">
-                                                        <span class="absolute left-2 top-2 text-gray-500 text-xs">Rp</span>
-                                                        @php
-                                                            $hargaSatuanFormatted = $detail->harga_satuan ? number_format($detail->harga_satuan, 0, ',', '.') : '';
-                                                        @endphp
-                                                        <input type="text" 
-                                                               name="details[{{ $index }}][harga_satuan_display]" 
-                                                               class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none text-sm price-input" 
-                                                               value="{{ $hargaSatuanFormatted }}" 
-                                                               placeholder="0">
-                                                        <input type="hidden" name="details[{{ $index }}][harga_satuan]" value="{{ $detail->harga_satuan }}">
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <!-- Diskon Item -->
-                                            <div class="space-y-1">
-                                                <label class="block text-xs font-medium text-gray-700">Diskon Item</label>
-                                                <div class="relative">
-                                                    <span class="absolute left-2 top-2 text-gray-500 text-xs">Rp</span>
-                                                    @php
-                                                        $diskonFormatted = ((float)($detail->diskon ?? 0)) ? number_format((float)$detail->diskon, 0, ',', '.') : '';
-                                                    @endphp
-                                                    <input type="text" 
-                                                           name="details[{{ $index }}][diskon_display]" 
-                                                           class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none text-sm price-input" 
-                                                           value="{{ $diskonFormatted }}" 
-                                                           placeholder="0">
-                                                    <input type="hidden" name="details[{{ $index }}][diskon]" value="{{ (float)($detail->diskon ?? 0) }}">
-                                                </div>
-                                            </div>
-
-                                            <!-- Keterangan Item -->
-                                            <div class="space-y-1">
-                                                <label class="block text-xs font-medium text-gray-700">Keterangan Item</label>
-                                                <textarea name="details[{{ $index }}][keterangan]" 
-                                                          rows="2" 
-                                                          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                                          placeholder="Keterangan item...">{{ $detail->keterangan }}</textarea>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            @endif
-                        </div>
-                    </div>
-                </div>
+                </form>
             </div>
-
-            <!-- Action Buttons -->
-            <div class="flex justify-end space-x-4 pt-6">
-                <a href="{{ route('transaksi.show', $transaksi->id) }}" 
-                   class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 font-medium">
-                    Batal
-                </a>
-                <button type="submit" 
-                        class="px-8 py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-all duration-200 font-medium shadow-sm hover:shadow-md">
-                    <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                    </svg>
-                    Perbarui Transaksi
-                </button>
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 
 <script>
-let detailIndex = {{ old('details') ? count(old('details')) : $transaksi->details->count() }};
-
 // Format number with dots as thousand separators
 function formatNumber(num) {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
-// Remove dots and convert to number
-function unformatNumber(str) {
-    return str.replace(/\./g, '');
+// Calculate all amounts using barang data
+function calculateAll() {
+    const qty = parseInt(document.getElementById('qty').value) || 0;
+    const barangSelect = document.getElementById('barang_id');
+    const jenisSelect = document.getElementById('jenis_transaksi');
+    
+    if (!barangSelect.value || !jenisSelect.value) {
+        // Reset all displays if no barang or jenis selected
+        document.getElementById('subtotal').textContent = 'Rp 0';
+        document.getElementById('total-discount').textContent = '- Rp 0';
+        document.getElementById('subtotal-after-disc').textContent = 'Rp 0';
+        document.getElementById('ppn-amount').textContent = '+ Rp 0';
+        document.getElementById('total-harga').textContent = 'Rp 0';
+        return;
+    }
+    
+    const selectedOption = barangSelect.options[barangSelect.selectedIndex];
+    const costPrice = parseFloat(selectedOption.dataset.cost) || 0;
+    const unitPrice = parseFloat(selectedOption.dataset.unit) || costPrice;
+    const discPerUnit = parseFloat(selectedOption.dataset.disc) || 0;
+    
+    // Determine harga satuan based on transaction type
+    let hargaSatuan = 0;
+    if (jenisSelect.value === 'masuk') {
+        hargaSatuan = costPrice;
+    } else if (jenisSelect.value === 'keluar') {
+        hargaSatuan = unitPrice;
+    }
+    
+    // Calculate subtotal
+    const subtotal = qty * hargaSatuan;
+    document.getElementById('subtotal').textContent = 'Rp ' + formatNumber(subtotal);
+    
+    // Calculate total discount (discount per unit * qty)
+    const totalDiscount = discPerUnit * qty;
+    document.getElementById('total-discount').textContent = '- Rp ' + formatNumber(Math.round(totalDiscount));
+    
+    // Calculate subtotal after discount
+    const subtotalAfterDisc = Math.max(0, subtotal - totalDiscount);
+    document.getElementById('subtotal-after-disc').textContent = 'Rp ' + formatNumber(Math.round(subtotalAfterDisc));
+    
+    // Calculate PPN (11% only for keluar transactions)
+    let ppnAmount = 0;
+    if (jenisSelect.value === 'keluar') {
+        ppnAmount = subtotalAfterDisc * 0.11;
+    }
+    document.getElementById('ppn-amount').textContent = '+ Rp ' + formatNumber(Math.round(ppnAmount));
+    
+    // Calculate final total
+    const totalHarga = subtotalAfterDisc + ppnAmount;
+    document.getElementById('total-harga').textContent = 'Rp ' + formatNumber(Math.round(totalHarga));
 }
 
-// Setup price input formatting
-function setupPriceInput(displayInput, hiddenInput) {
-    displayInput.addEventListener('input', function(e) {
-        let value = e.target.value;
+// Check stock availability
+function checkStock() {
+    const barangSelect = document.getElementById('barang_id');
+    const qtyInput = document.getElementById('qty');
+    const jenisSelect = document.getElementById('jenis_transaksi');
+    const stockWarning = document.getElementById('stock-warning');
+    const submitBtn = document.getElementById('submit-btn');
+    
+    if (barangSelect.value && jenisSelect.value === 'keluar') {
+        const selectedOption = barangSelect.options[barangSelect.selectedIndex];
+        const availableStock = parseInt(selectedOption.dataset.qty) || 0;
+        const requestedQty = parseInt(qtyInput.value) || 0;
         
-        // Remove all non-digit characters
-        value = value.replace(/[^\d]/g, '');
-        
-        // Update hidden field with raw number
-        hiddenInput.value = value;
-        
-        // Format display with dots
-        if (value) {
-            e.target.value = formatNumber(value);
+        if (requestedQty > availableStock) {
+            stockWarning.classList.remove('hidden');
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
         } else {
-            e.target.value = '';
+            stockWarning.classList.add('hidden');
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
         }
-    });
-
-    // Handle keypress for price inputs (only allow numbers)
-    displayInput.addEventListener('keypress', function(e) {
-        // Allow only numbers
-        if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-            e.preventDefault();
-        }
-    });
+    } else {
+        stockWarning.classList.add('hidden');
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
 }
 
-// Initialize existing price inputs
-document.addEventListener('DOMContentLoaded', function() {
-    // Setup ongkir formatting
-    const ongkirDisplay = document.getElementById('ongkir_display');
-    const ongkirHidden = document.getElementById('ongkir');
-    if (ongkirDisplay && ongkirHidden) {
-        setupPriceInput(ongkirDisplay, ongkirHidden);
-    }
-
-    // Setup existing detail price inputs
-    document.querySelectorAll('.price-input').forEach(function(displayInput) {
-        const hiddenInput = displayInput.nextElementSibling;
-        if (hiddenInput && hiddenInput.type === 'hidden') {
-            setupPriceInput(displayInput, hiddenInput);
-        }
-    });
-});
-
-document.getElementById('add-detail-row').addEventListener('click', function() {
-    const container = document.getElementById('transaction-details-container');
-    const newRow = document.createElement('div');
-    newRow.className = 'detail-item border border-gray-200 rounded-lg p-4 bg-gray-50 relative';
-    newRow.innerHTML = `
-        <div class="flex items-center justify-between mb-4">
-            <h4 class="text-sm font-medium text-gray-700">Item #${detailIndex + 1}</h4>
-            <button type="button" class="text-red-500 hover:text-red-700 transition-colors remove-detail-row">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
-        </div>
+// Show barang information and update harga display
+function showBarangInfo() {
+    const barangSelect = document.getElementById('barang_id');
+    const jenisSelect = document.getElementById('jenis_transaksi');
+    const barangInfo = document.getElementById('barang-info');
+    const hargaDisplay = document.getElementById('harga-display');
+    
+    if (barangSelect.value) {
+        const selectedOption = barangSelect.options[barangSelect.selectedIndex];
+        const stock = selectedOption.dataset.qty || '0';
+        const costPrice = selectedOption.dataset.cost || '0';
+        const unitPrice = selectedOption.dataset.unit || costPrice;
+        const discAmount = selectedOption.dataset.disc || '0';
+        const vendor = selectedOption.dataset.vendor || 'N/A';
         
-        <div class="grid grid-cols-1 gap-3">
-            <!-- Barang -->
-            <div class="space-y-1">
-                <label class="block text-xs font-medium text-gray-700">Barang <span class="text-red-500">*</span></label>
-                <select name="details[${detailIndex}][barang_id]" 
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm" 
-                        >
-                    <option value="">Pilih Barang</option>
-                    @foreach($barangs as $barang)
-                        <option value="{{ $barang->id }}">{{ $barang->nama }} ({{ $barang->kode }})</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-                <!-- Kuantitas -->
-                <div class="space-y-1">
-                    <label class="block text-xs font-medium text-gray-700">Kuantitas <span class="text-red-500">*</span></label>
-                    <input type="number" 
-                           step="0.01"
-                           name="details[${detailIndex}][qty]" 
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm" 
-                           value="1" 
-                           min="0.01">
-                </div>
-
-                <!-- Harga Satuan -->
-                <div class="space-y-1">
-                    <label class="block text-xs font-medium text-gray-700">Harga Satuan <span class="text-red-500">*</span></label>
-                    <div class="relative">
-                        <span class="absolute left-2 top-2 text-gray-500 text-xs">Rp</span>
-                        <input type="text" 
-                               name="details[${detailIndex}][harga_satuan_display]" 
-                               class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none text-sm price-input" 
-                               placeholder="0">
-                        <input type="hidden" name="details[${detailIndex}][harga_satuan]" value="0">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Diskon Item -->
-            <div class="space-y-1">
-                <label class="block text-xs font-medium text-gray-700">Diskon Item</label>
-                <div class="relative">
-                    <span class="absolute left-2 top-2 text-gray-500 text-xs">Rp</span>
-                    <input type="text" 
-                           name="details[${detailIndex}][diskon_display]" 
-                           class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none text-sm price-input" 
-                           placeholder="0">
-                    <input type="hidden" name="details[${detailIndex}][diskon]" value="0">
-                </div>
-            </div>
-
-            <!-- Keterangan Item -->
-            <div class="space-y-1">
-                <label class="block text-xs font-medium text-gray-700">Keterangan Item</label>
-                <textarea name="details[${detailIndex}][keterangan]" 
-                          rows="2" 
-                          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                          placeholder="Keterangan item..."></textarea>
-            </div>
-        </div>
-    `;
-    
-    container.appendChild(newRow);
-    
-    // Setup price formatting for new inputs
-    const newPriceInputs = newRow.querySelectorAll('.price-input');
-    newPriceInputs.forEach(function(displayInput) {
-        const hiddenInput = displayInput.nextElementSibling;
-        if (hiddenInput && hiddenInput.type === 'hidden') {
-            setupPriceInput(displayInput, hiddenInput);
+        document.getElementById('current-stock').textContent = formatNumber(stock);
+        document.getElementById('cost-price').textContent = 'Rp ' + formatNumber(costPrice);
+        document.getElementById('unit-price').textContent = 'Rp ' + formatNumber(unitPrice);
+        document.getElementById('vendor-name').textContent = vendor;
+        
+        // Update harga display based on transaction type
+        if (jenisSelect.value === 'masuk') {
+            hargaDisplay.textContent = 'Rp ' + formatNumber(costPrice) + ' (Harga Beli)';
+        } else if (jenisSelect.value === 'keluar') {
+            hargaDisplay.textContent = 'Rp ' + formatNumber(unitPrice) + ' (Harga Jual)';
+        } else {
+            hargaDisplay.textContent = 'Pilih jenis transaksi';
         }
+        
+        barangInfo.classList.remove('hidden');
+        calculateAll();
+    } else {
+        barangInfo.classList.add('hidden');
+        hargaDisplay.textContent = 'Pilih barang dan jenis transaksi';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Event listeners
+    document.getElementById('barang_id').addEventListener('change', function() {
+        showBarangInfo();
+        checkStock();
     });
     
-    detailIndex++;
-    updateItemNumbers();
-    attachRemoveListeners();
-});
-
-function updateItemNumbers() {
-    const items = document.querySelectorAll('.detail-item');
-    items.forEach((item, index) => {
-        const header = item.querySelector('h4');
-        header.textContent = `Item #${index + 1}`;
+    document.getElementById('jenis_transaksi').addEventListener('change', function() {
+        showBarangInfo();
+        checkStock();
     });
-}
-
-function attachRemoveListeners() {
-    document.querySelectorAll('.remove-detail-row').forEach(button => {
-        button.onclick = function() {
-            const container = document.getElementById('transaction-details-container');
-            if (container.children.length > 1) {
-                this.closest('.detail-item').remove();
-                updateItemNumbers();
-            }
-        };
+    
+    document.getElementById('qty').addEventListener('input', function() {
+        calculateAll();
+        checkStock();
     });
-}
-
-// Initial setup
-attachRemoveListeners();
-
-// Add custom CSS to remove any unwanted outlines
-const style = document.createElement('style');
-style.textContent = `
-    .price-input:focus,
-    input[type="text"]:focus,
-    input[type="number"]:focus,
-    select:focus,
-    textarea:focus {
-        outline: none !important;
-        box-shadow: 0 0 0 2px rgb(59 130 246 / 0.5) !important;
+    
+    // Initial calculations
+    if (document.getElementById('barang_id').value) {
+        showBarangInfo();
     }
-`;
-document.head.appendChild(style);
+    calculateAll();
+});
 </script>
 @endsection
