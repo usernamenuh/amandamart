@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 use App\Models\Barang;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ParetoExport;
+use App\Exports\ParetoPdfExport;
+use Barryvdh\DomPDF\Facade\Pdf;
+
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -452,4 +455,118 @@ class LaporanController extends Controller
             ], 500);
         }
     }
+
+    // Tambahkan di bagian atas controller
+
+// Tambahkan method-method ini di LaporanController
+
+/**
+ * Export analisis Pareto ke PDF
+ */
+public function exportPdf(Request $request)
+{
+    try {
+        // Validasi input
+        $request->validate([
+            'sort_by' => 'nullable|in:value,quantity',
+            'periode' => 'nullable|integer|min:1|max:12'
+        ]);
+
+        [$analisis, $totalSumOfBasis, $sortBy] = $this->getParetoData($request);
+        $periode = $request->query('periode', null);
+        
+        // Hitung statistik untuk summary
+        $stats = $this->calculateStats($analisis, $totalSumOfBasis, $sortBy);
+        
+        // Info periode
+        $periodeInfo = $this->getPeriodeInfo($periode);
+
+        // Generate filename yang descriptive
+        $basisText = $sortBy === 'quantity' ? 'Kuantitas' : 'Nilai';
+        $periodeText = $periodeInfo ? $periodeInfo['nama_bulan'] : 'Semua_Periode';
+        $timestamp = now()->format('Y-m-d_H-i-s');
+        $filename = "Analisis_ABC_Pareto_{$basisText}_{$periodeText}_{$timestamp}.pdf";
+
+        // Export PDF
+        $pdfExport = new ParetoPdfExport($analisis, $periode, $periodeInfo, $sortBy, $stats, $totalSumOfBasis);
+        return $pdfExport->download($filename);
+
+    } catch (\Exception $e) {
+        return back()->with('error', 'Terjadi kesalahan saat export PDF: ' . $e->getMessage());
+    }
+}
+
+/**
+ * Stream PDF untuk preview
+ */
+public function previewPdf(Request $request)
+{
+    try {
+        // Validasi input
+        $request->validate([
+            'sort_by' => 'nullable|in:value,quantity',
+            'periode' => 'nullable|integer|min:1|max:12'
+        ]);
+
+        [$analisis, $totalSumOfBasis, $sortBy] = $this->getParetoData($request);
+        $periode = $request->query('periode', null);
+        
+        // Hitung statistik untuk summary
+        $stats = $this->calculateStats($analisis, $totalSumOfBasis, $sortBy);
+        
+        // Info periode
+        $periodeInfo = $this->getPeriodeInfo($periode);
+
+        // Generate filename yang descriptive
+        $basisText = $sortBy === 'quantity' ? 'Kuantitas' : 'Nilai';
+        $periodeText = $periodeInfo ? $periodeInfo['nama_bulan'] : 'Semua_Periode';
+        $timestamp = now()->format('Y-m-d_H-i-s');
+        $filename = "Preview_Analisis_ABC_Pareto_{$basisText}_{$periodeText}_{$timestamp}.pdf";
+
+        // Stream PDF
+        $pdfExport = new ParetoPdfExport($analisis, $periode, $periodeInfo, $sortBy, $stats, $totalSumOfBasis);
+        return $pdfExport->stream($filename);
+
+    } catch (\Exception $e) {
+        return back()->with('error', 'Terjadi kesalahan saat preview PDF: ' . $e->getMessage());
+    }
+}
+
+/**
+ * Halaman print
+ */
+/**
+ * Halaman print
+ */
+public function printPage(Request $request)
+{
+    try {
+        // Validasi input
+        $request->validate([
+            'sort_by' => 'nullable|in:value,quantity',
+            'periode' => 'nullable|integer|min:1|max:12'
+        ]);
+
+        [$analisis, $totalSumOfBasis, $sortBy] = $this->getParetoData($request);
+        $periode = $request->query('periode', null);
+        
+        // Hitung statistik untuk summary
+        $stats = $this->calculateStats($analisis, $totalSumOfBasis, $sortBy);
+        
+        // Info periode
+        $periodeInfo = $this->getPeriodeInfo($periode);
+
+        return view('laporan.pareto_print', compact(
+            'analisis', 
+            'totalSumOfBasis', 
+            'stats', 
+            'periode', 
+            'periodeInfo', 
+            'sortBy'
+        ));
+
+    } catch (\Exception $e) {
+        return back()->with('error', 'Terjadi kesalahan saat memuat halaman cetak: ' . $e->getMessage());
+    }
+}
 }

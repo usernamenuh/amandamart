@@ -40,7 +40,13 @@ Route::middleware('auth')->group(function () {
 
     // Laporan Routes
     Route::prefix('laporan')->name('laporan.')->group(function () {
-        Route::get('/pareto', [LaporanController::class, 'analisisPareto'])->name('pareto');
-        Route::get('/pareto/export', [LaporanController::class, 'exportPareto'])->name('pareto.export');
-    });
+    // Routes yang sudah ada...
+    Route::get('/pareto', [LaporanController::class, 'analisisPareto'])->name('pareto');
+    Route::get('/pareto/export', [LaporanController::class, 'exportPareto'])->name('pareto.export');
+    
+    // Routes baru untuk PDF dan Print
+    Route::get('/pareto/export-pdf', [LaporanController::class, 'exportPdf'])->name('pareto.export.pdf');
+    Route::get('/pareto/preview-pdf', [LaporanController::class, 'previewPdf'])->name('pareto.preview.pdf');
+    Route::get('/pareto/print', [LaporanController::class, 'printPage'])->name('pareto.print');
+});
 });

@@ -148,30 +148,59 @@
                     </div>
                 </div>
 
-                <div class="flex gap-3">
-                    <button 
-                        type="submit"
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center shadow-sm"
-                    >
-                        <i class="fas fa-sync-alt mr-2"></i>Refresh Analisis
-                    </button>
-                    
-                    <a 
-                        href="{{ route('laporan.pareto.export', array_filter(['sort_by' => request('sort_by'), 'periode' => request('periode')])) }}" 
-                        class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center text-decoration-none shadow-sm"
-                    >
-                        <i class="fas fa-file-excel mr-2"></i>Export Excel
-                    </a>
+                {{-- Tambahkan di bagian tombol export di view pareto.blade.php --}}
 
-                    @if(request('periode'))
-                        <a 
-                            href="{{ route('laporan.pareto', ['sort_by' => request('sort_by')]) }}" 
-                            class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center text-decoration-none shadow-sm"
-                        >
-                            <i class="fas fa-times mr-2"></i>Reset ke Semua Periode
-                        </a>
-                    @endif
-                </div>
+<div class="flex gap-3">
+    <button 
+        type="submit"
+        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center shadow-sm"
+    >
+        <i class="fas fa-sync-alt mr-2"></i>Refresh Analisis
+    </button>
+    
+    {{-- Excel Export --}}
+    <a 
+        href="{{ route('laporan.pareto.export', array_filter(['sort_by' => request('sort_by'), 'periode' => request('periode')])) }}" 
+        class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center text-decoration-none shadow-sm"
+    >
+        <i class="fas fa-file-excel mr-2"></i>Export Excel
+    </a>
+
+    {{-- PDF Export --}}
+    <a 
+        href="{{ route('laporan.pareto.export.pdf', array_filter(['sort_by' => request('sort_by'), 'periode' => request('periode')])) }}" 
+        class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center text-decoration-none shadow-sm"
+    >
+        <i class="fas fa-file-pdf mr-2"></i>Export PDF
+    </a>
+
+    {{-- Preview PDF --}}
+    <a 
+        href="{{ route('laporan.pareto.preview.pdf', array_filter(['sort_by' => request('sort_by'), 'periode' => request('periode')])) }}" 
+        target="_blank"
+        class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center text-decoration-none shadow-sm"
+    >
+        <i class="fas fa-eye mr-2"></i>Preview PDF
+    </a>
+
+    {{-- Print --}}
+    <a 
+        href="{{ route('laporan.pareto.print', array_filter(['sort_by' => request('sort_by'), 'periode' => request('periode')])) }}" 
+        target="_blank"
+        class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center text-decoration-none shadow-sm"
+    >
+        <i class="fas fa-print mr-2"></i>Cetak
+    </a>
+
+    @if(request('periode'))
+        <a 
+            href="{{ route('laporan.pareto', ['sort_by' => request('sort_by')]) }}" 
+            class="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center text-decoration-none shadow-sm"
+        >
+            <i class="fas fa-times mr-2"></i>Reset ke Semua Periode
+        </a>
+    @endif
+</div>
             </form>
         </div>
 
