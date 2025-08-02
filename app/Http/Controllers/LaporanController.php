@@ -7,6 +7,7 @@ use App\Models\Barang;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ParetoExport;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class LaporanController extends Controller
 {
@@ -100,12 +101,12 @@ class LaporanController extends Controller
         // Reset keys setelah sorting
         $analisis = $analisis->values();
 
-        // Hitung total untuk persentase - PERBAIKAN UTAMA DI SINI
+        // Hitung total untuk persentase
         $totalSumOfBasis = $sortBy === 'quantity' 
             ? $analisis->sum('total_qty') 
             : $analisis->sum('total_nilai');
 
-        // Hitung persentase dan kategori ABC - PERBAIKAN PERHITUNGAN
+        // Hitung persentase dan kategori ABC
         $akumulasi = 0;
         foreach ($analisis as $item) {
             // Ambil nilai yang sesuai dengan basis sorting
@@ -133,14 +134,10 @@ class LaporanController extends Controller
     }
 
     /**
-     * Tampilkan analisis Pareto di view
+     * Hitung statistik lengkap untuk analisis
      */
-    public function analisisPareto(Request $request)
+    private function calculateStats($analisis, $totalSumOfBasis, $sortBy)
     {
-        [$analisis, $totalSumOfBasis, $sortBy] = $this->getParetoData($request);
-        $periode = $request->query('periode', null);
-        
-        // Hitung statistik dengan benar berdasarkan basis sorting
         $stats = [
             'total_barang' => $analisis->count(),
             'total_nilai_inventori' => $analisis->sum('total_nilai'),
@@ -171,18 +168,30 @@ class LaporanController extends Controller
         $stats['nilai_kategori_b'] = $analisis->where('kategori', 'B')->sum('total_nilai');
         $stats['nilai_kategori_c'] = $analisis->where('kategori', 'C')->sum('total_nilai');
 
-        // Info periode
-        $periodeInfo = null;
+        return $stats;
+    }
+
+    /**
+     * Generate info periode
+     */
+    private function getPeriodeInfo($periode)
+    {
         if ($periode && $periode > 0) {
-            $periodeInfo = [
+            return [
                 'periode' => $periode,
                 'nama_bulan' => $this->getBulanName($periode),
                 'label' => 'Periode ' . $this->getBulanName($periode)
             ];
         }
+        return null;
+    }
 
-        // Ambil daftar periode yang tersedia untuk dropdown
-        $availablePeriodes = Barang::select('periode')
+    /**
+     * Ambil daftar periode yang tersedia
+     */
+    private function getAvailablePeriodes()
+    {
+        return Barang::select('periode')
             ->whereNotNull('periode')
             ->where('periode', '>', 0)
             ->where('qty', '>', 0)
@@ -195,38 +204,252 @@ class LaporanController extends Controller
                     'name' => $this->getBulanName($p)
                 ];
             });
-
-        return view('laporan.pareto', compact('analisis', 'totalSumOfBasis', 'stats', 'periode', 'periodeInfo', 'availablePeriodes', 'sortBy'));
     }
 
     /**
-     * Export analisis Pareto ke Excel
+     * Tampilkan analisis Pareto di view
+     */
+    public function analisisPareto(Request $request)
+    {
+        try {
+            // Validasi input
+            $request->validate([
+                'sort_by' => 'nullable|in:value,quantity',
+                'periode' => 'nullable|integer|min:1|max:12'
+            ]);
+
+            [$analisis, $totalSumOfBasis, $sortBy] = $this->getParetoData($request);
+            $periode = $request->query('periode', null);
+            
+            // Hitung statistik
+            $stats = $this->calculateStats($analisis, $totalSumOfBasis, $sortBy);
+            
+            // Info periode
+            $periodeInfo = $this->getPeriodeInfo($periode);
+            
+            // Ambil daftar periode yang tersedia untuk dropdown
+            $availablePeriodes = $this->getAvailablePeriodes();
+
+            return view('laporan.pareto', compact(
+                'analisis', 
+                'totalSumOfBasis', 
+                'stats', 
+                'periode', 
+                'periodeInfo', 
+                'availablePeriodes', 
+                'sortBy'
+            ));
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Terjadi kesalahan saat memuat analisis: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Export analisis Pareto ke Excel dengan style yang enhanced
      */
     public function exportPareto(Request $request)
     {
-        [$analisis, $totalSumOfBasis, $sortBy] = $this->getParetoData($request);
-        $periode = $request->query('periode', null);
-        
-        $exportData = $analisis->map(function ($item, $index) {
-            return [
-                'no' => $index + 1,
-                'nama_barang' => $item->nama_barang,
-                'no_barang' => $item->no_barang,
-                'vendor' => $item->vendor,
-                'periode' => $item->periode_name,
-                'qty' => $item->total_qty,
-                'harga_satuan' => $item->harga_satuan,
-                'total_nilai' => $item->total_nilai,
-                'persentase' => $item->persentase,
-                'akumulasi_persentase' => $item->akumulasi_persentase,
-                'kategori' => $item->kategori,
+        try {
+            // Validasi input
+            $request->validate([
+                'sort_by' => 'nullable|in:value,quantity',
+                'periode' => 'nullable|integer|min:1|max:12'
+            ]);
+
+            [$analisis, $totalSumOfBasis, $sortBy] = $this->getParetoData($request);
+            $periode = $request->query('periode', null);
+            
+            // Hitung statistik untuk summary
+            $stats = $this->calculateStats($analisis, $totalSumOfBasis, $sortBy);
+            
+            // Info periode
+            $periodeInfo = $this->getPeriodeInfo($periode);
+
+            // Generate filename yang descriptive
+            $basisText = $sortBy === 'quantity' ? 'Kuantitas' : 'Nilai';
+            $periodeText = $periodeInfo ? $periodeInfo['nama_bulan'] : 'Semua_Periode';
+            $timestamp = now()->format('Y-m-d_H-i-s');
+            $filename = "Analisis_ABC_Pareto_{$basisText}_{$periodeText}_{$timestamp}.xlsx";
+
+            // Export dengan data lengkap
+            return Excel::download(
+                new ParetoExport($analisis, $periode, $periodeInfo, $sortBy, $stats), 
+                $filename
+            );
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Terjadi kesalahan saat export: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Get ABC analysis summary for API/AJAX
+     */
+    public function getAbcSummary(Request $request)
+    {
+        try {
+            [$analisis, $totalSumOfBasis, $sortBy] = $this->getParetoData($request);
+            $stats = $this->calculateStats($analisis, $totalSumOfBasis, $sortBy);
+            $periode = $request->query('periode', null);
+            $periodeInfo = $this->getPeriodeInfo($periode);
+
+            $summary = [
+                'success' => true,
+                'data' => [
+                    'total_items' => $stats['total_barang'],
+                    'total_value' => $stats['total_nilai_inventori'],
+                    'total_quantity' => $stats['total_qty_inventori'],
+                    'sort_by' => $sortBy,
+                    'periode_info' => $periodeInfo,
+                    'categories' => [
+                        'A' => [
+                            'count' => $stats['kategori_a_count'],
+                            'value' => $stats['nilai_kategori_a'],
+                            'contribution' => $stats['kontribusi_a'],
+                            'basis_value' => $stats['kategori_a_basis']
+                        ],
+                        'B' => [
+                            'count' => $stats['kategori_b_count'],
+                            'value' => $stats['nilai_kategori_b'],
+                            'contribution' => $stats['kontribusi_b'],
+                            'basis_value' => $stats['kategori_b_basis']
+                        ],
+                        'C' => [
+                            'count' => $stats['kategori_c_count'],
+                            'value' => $stats['nilai_kategori_c'],
+                            'contribution' => $stats['kontribusi_c'],
+                            'basis_value' => $stats['kategori_c_basis']
+                        ]
+                    ]
+                ]
             ];
-        })->toArray();
 
-        $filename = 'analisis_pareto_abc_' . 
-                   ($periode ? $this->getBulanName($periode) . '_' : 'semua_periode_') . 
-                   date('Y-m-d') . '.xlsx';
+            return response()->json($summary);
 
-        return Excel::download(new ParetoExport($exportData), $filename);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get detailed analysis data for specific category
+     */
+    public function getCategoryDetails(Request $request, $category)
+    {
+        try {
+            $request->validate([
+                'sort_by' => 'nullable|in:value,quantity',
+                'periode' => 'nullable|integer|min:1|max:12'
+            ]);
+
+            if (!in_array($category, ['A', 'B', 'C'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Kategori tidak valid'
+                ], 400);
+            }
+
+            [$analisis, $totalSumOfBasis, $sortBy] = $this->getParetoData($request);
+            
+            $categoryItems = $analisis->where('kategori', $category)->values();
+            $stats = $this->calculateStats($analisis, $totalSumOfBasis, $sortBy);
+            $periodeInfo = $this->getPeriodeInfo($request->query('periode'));
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'category' => $category,
+                    'items' => $categoryItems,
+                    'summary' => [
+                        'count' => $categoryItems->count(),
+                        'total_value' => $categoryItems->sum('total_nilai'),
+                        'total_quantity' => $categoryItems->sum('total_qty'),
+                        'contribution' => $stats['kontribusi_' . strtolower($category)]
+                    ],
+                    'periode_info' => $periodeInfo,
+                    'sort_by' => $sortBy
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Dashboard summary untuk widget
+     */
+    public function dashboardSummary()
+    {
+        try {
+            // Ambil data untuk semua periode dengan basis nilai
+            $request = new Request(['sort_by' => 'value']);
+            [$analisis, $totalSumOfBasis, $sortBy] = $this->getParetoData($request);
+            $stats = $this->calculateStats($analisis, $totalSumOfBasis, $sortBy);
+
+            // Summary per periode
+            $periodeStats = [];
+            for ($i = 1; $i <= 12; $i++) {
+                $periodeRequest = new Request(['sort_by' => 'value', 'periode' => $i]);
+                [$periodeAnalisis, $periodeTotalBasis, $periodeSortBy] = $this->getParetoData($periodeRequest);
+                
+                if ($periodeAnalisis->count() > 0) {
+                    $periodeStats[$i] = [
+                        'nama_bulan' => $this->getBulanName($i),
+                        'total_items' => $periodeAnalisis->count(),
+                        'total_value' => $periodeAnalisis->sum('total_nilai'),
+                        'total_quantity' => $periodeAnalisis->sum('total_qty'),
+                        'category_a_count' => $periodeAnalisis->where('kategori', 'A')->count(),
+                        'category_b_count' => $periodeAnalisis->where('kategori', 'B')->count(),
+                        'category_c_count' => $periodeAnalisis->where('kategori', 'C')->count(),
+                    ];
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'overall' => $stats,
+                    'by_periode' => $periodeStats,
+                    'last_updated' => now()->format('Y-m-d H:i:s')
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Refresh cache atau data (jika diperlukan)
+     */
+    public function refreshData()
+    {
+        try {
+            // Clear any cache if needed
+            // Cache::forget('abc_analysis');
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Data berhasil direfresh',
+                'timestamp' => now()->format('Y-m-d H:i:s')
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal refresh data: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }
