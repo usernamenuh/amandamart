@@ -4,205 +4,307 @@ namespace App\Http\Controllers;
 
 use App\Models\Barang;
 use App\Models\User;
+use App\Imports\BarangImport;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class BarangController extends Controller
 {
-
-    public function index(Request $request)
+    public function index()
     {
-        $query = Barang::with('user');
-
-
-        // Search functionality
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('kode', 'LIKE', "%{$search}%")
-                    ->orWhere('nama', 'LIKE', "%{$search}%")
-                    ->orWhere('keterangan', 'LIKE', "%{$search}%");
-            });
-        }
-
-        // Filter by golongan
-        if ($request->filled('golongan')) {
-            $query->where('golongan', $request->golongan);
-        }
-
-        // Filter by stock level
-        if ($request->filled('stock_filter')) {
-            switch ($request->stock_filter) {
-                case 'low':
-                    $query->where('does_pcs', '<', 10);
-                    break;
-                case 'medium':
-                    $query->whereBetween('does_pcs', [10, 49]);
-                    break;
-                case 'high':
-                    $query->where('does_pcs', '>=', 50);
-                    break;
-            }
-        }
-
-        // Filter by user
-        if ($request->filled('user_filter')) {
-            $query->where('user_id', $request->user_filter);
-        }
-
-        // Order by latest
-        $query->orderBy('created_at', 'desc');
-
-        // Get all barangs for DataTables (no pagination)
-        $barangs = $query->get();
-
-        return view('barang.index', compact('barangs',));
+        $barangs = Barang::with('user')->latest()->get();
+        return view('barang.index', compact('barangs'));
     }
 
     public function create()
     {
-        $users = User::orderBy('name')->get();
+        $users = User::all();
         return view('barang.create', compact('users'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'kode' => 'required|string|max:255',
-            'nama' => 'required|string|max:255',
-            'does_pcs' => 'required|numeric|min:1',
-            'golongan' => 'required|string|max:255',
-            'hbeli' => 'required|numeric|min:0',
-            'user_id' => 'nullable|exists:users,id',
-            'keterangan' => 'nullable|string|max:1000',
+            'nama_item' => 'required|string|max:255',
+            'itemid' => 'nullable|string|max:255',
+            'barcode' => 'nullable|string|max:255',
+            'no' => 'nullable|string|max:255',
+            'unitid' => 'nullable|string|max:255',
+            'qty' => 'required|integer|min:0',
+            'cost_price' => 'required|numeric|min:0',
+            'unit_price' => 'nullable|numeric|min:0',
+            'disc_amt' => 'nullable|numeric|min:0',
+            'vendor' => 'nullable|string|max:255',
+            'vendor_id' => 'nullable|string|max:255',
+            'vend_name' => 'nullable|string|max:255',
+            'dept_id' => 'nullable|string|max:255',
+            'dept_description' => 'nullable|string|max:255',
+            'ctgry_id' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+            'periode' => 'nullable|integer|in:1,2,3,4,5,6,7,8,9,10,11,12',
+            'site' => 'nullable|string|max:255',
+            'date' => 'nullable|date',
+            'time' => 'nullable|string',
+            'consignment' => 'nullable|string|max:255',
         ], [
-            'kode.required' => 'Kode barang wajib diisi.',
-            'nama.required' => 'Nama barang wajib diisi.',
-            'nama.max' => 'Nama barang maksimal 255 karakter.',
-            'does_pcs.required' => 'Nilai konversi unit wajib diisi.',
-            'does_pcs.numeric' => 'Nilai konversi unit harus berupa angka.',
-            'does_pcs.min' => 'Minimal nilai konversi adalah 1.',
-            'golongan.required' => 'Golongan/Kategori wajib diisi.',
-            'golongan.max' => 'Golongan maksimal 255 karakter.',
-            'hbeli.required' => 'Harga beli wajib diisi.',
-            'hbeli.numeric' => 'Harga beli harus berupa angka.',
-            'hbeli.min' => 'Harga beli tidak boleh negatif.',
-            'user_id.exists' => 'User yang dipilih tidak valid.',
-            'keterangan.max' => 'Keterangan maksimal 1000 karakter.',
+            'nama_item.required' => 'Nama item wajib diisi',
+            'qty.required' => 'Quantity wajib diisi',
+            'cost_price.required' => 'Harga beli wajib diisi',
         ]);
 
-        Barang::create([
-            'kode' => $request->kode,
-            'nama' => $request->nama,
-            'does_pcs' => $request->does_pcs,
-            'golongan' => $request->golongan,
-            'hbeli' => $request->hbeli,
-            'user_id' => $request->user_id ?? Auth::id(),
-            'keterangan' => $request->keterangan,
-        ]);
+        // Get input data
+        $data = $request->all();
+        
+        // Set default values for calculations
+        $qty = $data['qty'] ?? 0;
+        $cost_price = $data['cost_price'] ?? 0;
+        $unit_price = $data['unit_price'] ?? 0;
+        $disc_amt = $data['disc_amt'] ?? 0;
+        
+        // 1. Auto-calculate Total Cost
+        $data['total_cost'] = $cost_price * $qty;
+        
+        // 2. Auto-calculate Total Inc PPN (Cost Price + 11% PPN)
+        $data['total_inc_ppn'] = $cost_price + ($cost_price * 0.11);
+        
+        // 3. Auto-calculate Gross Amount (if unit_price provided)
+        if ($unit_price > 0) {
+            $data['gross_amt'] = $unit_price * $qty;
+            
+            // 4. Auto-calculate Sales After Discount
+            $data['sales_after_discount'] = $data['gross_amt'] - $disc_amt;
+            
+            // 5. Auto-calculate Sales VAT (11% from Sales After Discount)
+            $data['sales_vat'] = $data['sales_after_discount'] * 0.11;
+            
+            // 6. Auto-calculate Net Sales Before Tax
+            $data['net_sales_bef_tax'] = $data['sales_after_discount'] - $data['sales_vat'];
+            
+            // 7. Auto-calculate Margin (Net Sales Before Tax - Total Cost)
+            $data['margin'] = $data['net_sales_bef_tax'] - $data['total_cost'];
+            
+            // 8. Auto-calculate Margin Percent
+            if ($data['total_cost'] > 0) {
+                $data['margin_percent'] = ($data['margin'] / $data['total_cost']) * 100;
+            } else {
+                $data['margin_percent'] = 0;
+            }
+        } else {
+            // If no unit price, set sales-related fields to 0
+            $data['gross_amt'] = 0;
+            $data['sales_after_discount'] = 0;
+            $data['sales_vat'] = 0;
+            $data['net_sales_bef_tax'] = 0;
+            $data['margin'] = 0;
+            $data['margin_percent'] = 0;
+        }
 
-        return redirect()->route('barang.index')->with('success', 'Barang berhasil ditambahkan!');
+        // Convert date to integer if provided (Excel format)
+        if ($request->filled('date')) {
+            $date = \DateTime::createFromFormat('Y-m-d', $request->date);
+            if ($date) {
+                // Convert to Excel date serial number (days since 1900-01-01)
+                $excel_epoch = \DateTime::createFromFormat('Y-m-d', '1900-01-01');
+                $data['date'] = $date->diff($excel_epoch)->days + 1;
+            } else {
+                $data['date'] = null;
+            }
+        } else {
+            $data['date'] = null;
+        }
+
+        // Convert time to decimal if provided
+        if ($request->filled('time')) {
+            $time = \DateTime::createFromFormat('H:i', $request->time);
+            if ($time) {
+                // Convert to decimal (fraction of day)
+                $hours = (int)$time->format('H');
+                $minutes = (int)$time->format('i');
+                $data['time'] = ($hours + ($minutes / 60)) / 24;
+            } else {
+                $data['time'] = null;
+            }
+        } else {
+            $data['time'] = null;
+        }
+
+        Barang::create($data);
+
+        return redirect()->route('barang.index')->with('success', 'Data barang berhasil ditambahkan!');
     }
 
     public function show(Barang $barang)
     {
-        $barang->load('user');
         return view('barang.show', compact('barang'));
     }
 
     public function edit(Barang $barang)
     {
-        $users = User::orderBy('name')->get();
+        $users = User::all();
         return view('barang.edit', compact('barang', 'users'));
     }
 
     public function update(Request $request, Barang $barang)
     {
         $request->validate([
-            'kode' => 'required|string|max:255', 
-            'nama' => 'required|string|max:255',
-            'does_pcs' => 'required|numeric|min:1',
-            'golongan' => 'required|string|max:255',
-            'hbeli' => 'required|numeric|min:0',
-            'user_id' => 'nullable|exists:users,id',
-            'keterangan' => 'nullable|string|max:1000',
+            'nama_item' => 'required|string|max:255',
+            'itemid' => 'nullable|string|max:255',
+            'barcode' => 'nullable|string|max:255',
+            'no' => 'nullable|string|max:255',
+            'unitid' => 'nullable|string|max:255',
+            'qty' => 'required|integer|min:0',
+            'cost_price' => 'required|numeric|min:0',
+            'unit_price' => 'nullable|numeric|min:0',
+            'disc_amt' => 'nullable|numeric|min:0',
+            'vendor' => 'nullable|string|max:255',
+            'vendor_id' => 'nullable|string|max:255',
+            'vend_name' => 'nullable|string|max:255',
+            'dept_id' => 'nullable|string|max:255',
+            'dept_description' => 'nullable|string|max:255',
+            'ctgry_id' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+            'periode' => 'nullable|integer|in:1,2,3,4,5,6,7,8,9,10,11,12',
+            'site' => 'nullable|string|max:255',
+            'date' => 'nullable|date',
+            'time' => 'nullable|string',
+            'consignment' => 'nullable|string|max:255',
         ], [
-            'kode.required' => 'Kode barang wajib diisi.',
-            'nama.required' => 'Nama barang wajib diisi.',
-            'nama.max' => 'Nama barang maksimal 255 karakter.',
-            'does_pcs.required' => 'Nilai konversi unit wajib diisi.',
-            'does_pcs.numeric' => 'Nilai konversi unit harus berupa angka.',
-            'does_pcs.min' => 'Minimal nilai konversi adalah 1.',
-            'golongan.required' => 'Golongan/Kategori wajib diisi.',
-            'golongan.max' => 'Golongan maksimal 255 karakter.',
-            'hbeli.required' => 'Harga beli wajib diisi.',
-            'hbeli.numeric' => 'Harga beli harus berupa angka.',
-            'hbeli.min' => 'Harga beli tidak boleh negatif.',
-            'user_id.exists' => 'User yang dipilih tidak valid.',
-            'keterangan.max' => 'Keterangan maksimal 1000 karakter.',
+            'nama_item.required' => 'Nama item wajib diisi',
+            'qty.required' => 'Quantity wajib diisi',
+            'cost_price.required' => 'Harga beli wajib diisi',
         ]);
-        $barang->update([
-            'kode' => $request->kode,
-            'nama' => $request->nama,
-            'does_pcs' => $request->does_pcs,
-            'golongan' => $request->golongan,
-            'hbeli' => $request->hbeli,
-            'user_id' => $request->user_id,
-            'keterangan' => $request->keterangan,
-        ]);
-        return redirect()->route('barang.show', $barang->id)->with('success', 'Barang berhasil diupdate!');
+
+        // Get input data
+        $data = $request->all();
+        
+        // Set default values for calculations
+        $qty = $data['qty'] ?? 0;
+        $cost_price = $data['cost_price'] ?? 0;
+        $unit_price = $data['unit_price'] ?? 0;
+        $disc_amt = $data['disc_amt'] ?? 0;
+        
+        // 1. Auto-calculate Total Cost
+        $data['total_cost'] = $cost_price * $qty;
+        
+        // 2. Auto-calculate Total Inc PPN (Cost Price + 11% PPN)
+        $data['total_inc_ppn'] = $cost_price + ($cost_price * 0.11);
+        
+        // 3. Auto-calculate Gross Amount (if unit_price provided)
+        if ($unit_price > 0) {
+            $data['gross_amt'] = $unit_price * $qty;
+            
+            // 4. Auto-calculate Sales After Discount
+            $data['sales_after_discount'] = $data['gross_amt'] - $disc_amt;
+            
+            // 5. Auto-calculate Sales VAT (11% from Sales After Discount)
+            $data['sales_vat'] = $data['sales_after_discount'] * 0.11;
+            
+            // 6. Auto-calculate Net Sales Before Tax
+            $data['net_sales_bef_tax'] = $data['sales_after_discount'] - $data['sales_vat'];
+            
+            // 7. Auto-calculate Margin (Net Sales Before Tax - Total Cost)
+            $data['margin'] = $data['net_sales_bef_tax'] - $data['total_cost'];
+            
+            // 8. Auto-calculate Margin Percent
+            if ($data['total_cost'] > 0) {
+                $data['margin_percent'] = ($data['margin'] / $data['total_cost']) * 100;
+            } else {
+                $data['margin_percent'] = 0;
+            }
+        } else {
+            // If no unit price, set sales-related fields to 0
+            $data['gross_amt'] = 0;
+            $data['sales_after_discount'] = 0;
+            $data['sales_vat'] = 0;
+            $data['net_sales_bef_tax'] = 0;
+            $data['margin'] = 0;
+            $data['margin_percent'] = 0;
+        }
+
+        // Convert date to integer if provided (Excel format)
+        if ($request->filled('date')) {
+            $date = \DateTime::createFromFormat('Y-m-d', $request->date);
+            if ($date) {
+                // Convert to Excel date serial number (days since 1900-01-01)
+                $excel_epoch = \DateTime::createFromFormat('Y-m-d', '1900-01-01');
+                $data['date'] = $date->diff($excel_epoch)->days + 1;
+            } else {
+                $data['date'] = null;
+            }
+        } else {
+            $data['date'] = null;
+        }
+
+        // Convert time to decimal if provided
+        if ($request->filled('time')) {
+            $time = \DateTime::createFromFormat('H:i', $request->time);
+            if ($time) {
+                // Convert to decimal (fraction of day)
+                $hours = (int)$time->format('H');
+                $minutes = (int)$time->format('i');
+                $data['time'] = ($hours + ($minutes / 60)) / 24;
+            } else {
+                $data['time'] = null;
+            }
+        } else {
+            $data['time'] = null;
+        }
+
+        $barang->update($data);
+
+        return redirect()->route('barang.show', $barang)->with('success', 'Data barang berhasil diperbarui!');
     }
+
     public function destroy(Barang $barang)
     {
         $barang->delete();
-        return redirect()->route('barang.index')->with('success', 'Barang berhasil dihapus!');
+        return redirect()->route('barang.index')->with('success', 'Data barang berhasil dihapus!');
     }
-    public function showImportForm()
+
+    public function importForm()
     {
         return view('barang.import');
     }
+
     public function import(Request $request)
     {
         $request->validate([
-            'file' => 'required|mimes:xlsx,xls,csv|max:10240',
+            'file' => 'required|mimes:xlsx,xls,csv|max:10240', // max 10MB
+        ], [
+            'file.required' => 'File import wajib dipilih',
+            'file.mimes' => 'File harus berformat Excel (.xlsx, .xls) atau CSV',
+            'file.max' => 'Ukuran file maksimal 10MB',
         ]);
 
         try {
-            // Simulate processing time
-            sleep(2);
-            $importer = new \App\Imports\BarangImportFinal;
-            $result = $importer->import($request->file('file'));
-
-            // Get detailed results from importer
-            $importResults = [
-                'total_data' => $importer->getTotalData(),
-                'berhasil' => $importer->getJumlahBerhasil(),
-                'user_dibuat' => $importer->getJumlahUserDibuat(),
-                'gagal' => count($importer->getDaftarError()),
-                'errors' => $importer->getDaftarError(),
-                'baris_gagal' => $importer->getBarisGagal(),
-                'baris_berhasil' => $importer->getBarisBerhasil()
-            ];
+            $import = new BarangImport();
+            Excel::import($import, $request->file('file'));
+            
+            $stats = $import->getImportStats();
+            
+            $message = "Import selesai! ";
+            $message .= "Data baru: {$stats['imported']}, ";
+            $message .= "Data diperbarui: {$stats['duplicates']}, ";
+            $message .= "Error: {$stats['errors']}";
+            
             return response()->json([
                 'success' => true,
-                'message' => 'Import selesai diproses!',
-                'data' => $importResults
+                'message' => $message,
+                'data' => [
+                    'total_data' => $stats['imported'] + $stats['duplicates'],
+                    'berhasil' => $stats['imported'],
+                    'diperbarui' => $stats['duplicates'],
+                    'gagal' => $stats['errors'],
+                    'errors' => $stats['error_details']
+                ]
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal import: ' . $e->getMessage(),
-                'data' => [
-                    'total_data' => 0,
-                    'berhasil' => 0,
-                    'user_dibuat' => 0,
-                    'gagal' => 1,
-                    'errors' => [$e->getMessage()],
-                    'baris_gagal' => [],
-                    'baris_berhasil' => []
-                ]
-            ], 422);
+                'message' => 'Terjadi kesalahan saat import: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

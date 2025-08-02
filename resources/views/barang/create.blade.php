@@ -13,7 +13,7 @@
         :showBanner="true"
     />
 
-    <!-- Main Content with proper spacing -->
+    <!-- Main Content -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
         <!-- Breadcrumb -->
         <nav class="flex mb-8" aria-label="Breadcrumb">
@@ -68,176 +68,266 @@
                 <form action="{{ route('barang.store') }}" method="POST" class="space-y-8">
                     @csrf
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <!-- Kode Barang -->
-                        <div class="space-y-2">
-                            <label for="kode" class="block text-sm font-semibold text-gray-700">
-                                Kode Barang <span class="text-red-500">*</span>
-                            </label>
-                            <input type="text" 
-                                   name="kode" 
-                                   id="kode" 
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200 @error('kode') border-red-500 ring-2 ring-red-200 @enderror" 
-                                   value="{{ old('kode') }}" 
-                                   placeholder="Masukkan kode barang"
-                                   >
-                            @error('kode')
-                                <p class="mt-2 text-sm text-red-600 flex items-center">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                    {{ $message }}
-                                </p>
-                            @enderror
-                        </div>
-
-                        <!-- Nama Barang -->
-                        <div class="space-y-2">
-                            <label for="nama" class="block text-sm font-semibold text-gray-700">
-                                Nama Barang <span class="text-red-500">*</span>
-                            </label>
-                            <input type="text" 
-                                   name="nama" 
-                                   id="nama" 
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200 @error('nama') border-red-500 ring-2 ring-red-200 @enderror" 
-                                   value="{{ old('nama') }}" 
-                                   placeholder="Masukkan nama barang"
-                                   >
-                            @error('nama')
-                                <p class="mt-2 text-sm text-red-600 flex items-center">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                    {{ $message }}
-                                </p>
-                            @enderror
-                        </div>
-
-                        <!-- Does Pcs -->
-                        <div class="space-y-2">
-                            <label for="does_pcs" class="block text-sm font-semibold text-gray-700">
-                                Does Pcs (Konversi Unit) <span class="text-red-500">*</span>
-                            </label>
-                            <input type="number" 
-                                   step="0.01" 
-                                   name="does_pcs" 
-                                   id="does_pcs" 
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200 @error('does_pcs') border-red-500 ring-2 ring-red-200 @enderror" 
-                                   value="{{ old('does_pcs', 1) }}" 
-                                   min="0.01"
-                                   placeholder="1.00"
-                                   >
-                            @error('does_pcs')
-                                <p class="mt-2 text-sm text-red-600 flex items-center">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                    {{ $message }}
-                                </p>
-                            @enderror
-                            <p class="text-xs text-gray-500 flex items-center">
-                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                                Nilai konversi unit (contoh: 1 dus = 12 pcs)
-                            </p>
-                        </div>
-
-                        <!-- Golongan -->
-                        <div class="space-y-2">
-                            <label for="golongan" class="block text-sm font-semibold text-gray-700">
-                                Golongan (Kategori) <span class="text-red-500">*</span>
-                            </label>
-                            <input type="text" 
-                                   name="golongan" 
-                                   id="golongan" 
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200 @error('golongan') border-red-500 ring-2 ring-red-200 @enderror" 
-                                   value="{{ old('golongan') }}" 
-                                   placeholder="Masukkan golongan barang"
-                                   >
-                            @error('golongan')
-                                <p class="mt-2 text-sm text-red-600 flex items-center">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                    {{ $message }}
-                                </p>
-                            @enderror
-                        </div>
-
-                        <!-- Harga Beli -->
-                        <div class="space-y-2">
-                            <label for="hbeli" class="block text-sm font-semibold text-gray-700">
-                                Harga Beli <span class="text-red-500">*</span>
-                            </label>
-                            <div class="relative">
-                                <span class="absolute left-3 top-3 text-gray-500">Rp</span>
-                                @php
-                                    $hbeliValue = old('hbeli', 0);
-                                    $hbeliFormatted = $hbeliValue ? number_format($hbeliValue, 0, ',', '.') : '';
-                                @endphp
-                                <input type="text" 
-                                       name="hbeli_display" 
-                                       id="hbeli_display" 
-                                       class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200 @error('hbeli') border-red-500 ring-2 ring-red-200 @enderror" 
-                                       value="{{ $hbeliFormatted }}" 
-                                       placeholder="0">
-                                <input type="hidden" name="hbeli" id="hbeli" value="{{ $hbeliValue }}">
+                    <!-- Basic Information Section -->
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4">Informasi Dasar</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- Item ID -->
+                            <div class="space-y-2">
+                                <label for="itemid" class="block text-sm font-semibold text-gray-700">Item ID</label>
+                                <input type="text" name="itemid" id="itemid" 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200 @error('itemid') border-red-500 ring-2 ring-red-200 @enderror" 
+                                       value="{{ old('itemid') }}" placeholder="Masukkan Item ID">
+                                @error('itemid')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
-                            @error('hbeli')
-                                <p class="mt-2 text-sm text-red-600 flex items-center">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                    {{ $message }}
-                                </p>
-                            @enderror
-                        </div>
 
-                        <!-- User Input -->
-                        <div class="space-y-2">
-                            <label for="user_id" class="block text-sm font-semibold text-gray-700">
-                                User Input
-                            </label>
-                            <select name="user_id" 
-                                    id="user_id" 
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200 @error('user_id') border-red-500 ring-2 ring-red-200 @enderror">
-                                <option value="">Pilih User</option>
-                                @foreach($users as $user)
-                                    <option value="{{ $user->id }}" {{ old('user_id') == $user->id ? 'selected' : '' }}>
-                                        {{ $user->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('user_id')
-                                <p class="mt-2 text-sm text-red-600 flex items-center">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                    {{ $message }}
-                                </p>
-                            @enderror
+                            <!-- Nama Item -->
+                            <div class="space-y-2">
+                                <label for="nama_item" class="block text-sm font-semibold text-gray-700">Nama Item <span class="text-red-500">*</span></label>
+                                <input type="text" name="nama_item" id="nama_item" 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200 @error('nama_item') border-red-500 ring-2 ring-red-200 @enderror" 
+                                       value="{{ old('nama_item') }}" placeholder="Masukkan nama item" required>
+                                @error('nama_item')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+
+                            <!-- Barcode -->
+                            <div class="space-y-2">
+                                <label for="barcode" class="block text-sm font-semibold text-gray-700">Barcode</label>
+                                <input type="text" name="barcode" id="barcode" 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200 @error('barcode') border-red-500 ring-2 ring-red-200 @enderror" 
+                                       value="{{ old('barcode') }}" placeholder="Masukkan barcode">
+                                @error('barcode')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+
+                            <!-- No -->
+                            <div class="space-y-2">
+                                <label for="no" class="block text-sm font-semibold text-gray-700">No</label>
+                                <input type="text" name="no" id="no" 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200 @error('no') border-red-500 ring-2 ring-red-200 @enderror" 
+                                       value="{{ old('no') }}" placeholder="Masukkan nomor">
+                                @error('no')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+
+                            <!-- Unit ID -->
+                            <div class="space-y-2">
+                                <label for="unitid" class="block text-sm font-semibold text-gray-700">Unit ID</label>
+                                <input type="text" name="unitid" id="unitid" 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200 @error('unitid') border-red-500 ring-2 ring-red-200 @enderror" 
+                                       value="{{ old('unitid') }}" placeholder="Masukkan unit ID">
+                                @error('unitid')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+
+                            <!-- Quantity -->
+                            <div class="space-y-2">
+                                <label for="qty" class="block text-sm font-semibold text-gray-700">Quantity <span class="text-red-500">*</span></label>
+                                <input type="number" name="qty" id="qty" 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200 @error('qty') border-red-500 ring-2 ring-red-200 @enderror" 
+                                       value="{{ old('qty', 0) }}" min="0" placeholder="0" required>
+                                @error('qty')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Keterangan -->
-                    <div class="space-y-2">
-                        <label for="keterangan" class="block text-sm font-semibold text-gray-700">
-                            Keterangan
-                        </label>
-                        <textarea name="keterangan" 
-                                  id="keterangan" 
-                                  rows="4" 
-                                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200 @error('keterangan') border-red-500 ring-2 ring-red-200 @enderror"
-                                  placeholder="Masukkan keterangan tambahan (opsional)">{{ old('keterangan') }}</textarea>
-                        @error('keterangan')
-                            <p class="mt-2 text-sm text-red-600 flex items-center">
-                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    <!-- Vendor & Category Section -->
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4">Vendor & Kategori</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- Vendor -->
+                            <div class="space-y-2">
+                                <label for="vendor" class="block text-sm font-semibold text-gray-700">Vendor</label>
+                                <input type="text" name="vendor" id="vendor" 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200 @error('vendor') border-red-500 ring-2 ring-red-200 @enderror" 
+                                       value="{{ old('vendor') }}" placeholder="Masukkan nama vendor">
+                                @error('vendor')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+
+                            <!-- Vendor ID -->
+                            <div class="space-y-2">
+                                <label for="vendor_id" class="block text-sm font-semibold text-gray-700">Vendor ID</label>
+                                <input type="text" name="vendor_id" id="vendor_id" 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200 @error('vendor_id') border-red-500 ring-2 ring-red-200 @enderror" 
+                                       value="{{ old('vendor_id') }}" placeholder="Masukkan vendor ID">
+                                @error('vendor_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+
+                            <!-- Vendor Name -->
+                            <div class="space-y-2">
+                                <label for="vend_name" class="block text-sm font-semibold text-gray-700">Vendor Name</label>
+                                <input type="text" name="vend_name" id="vend_name" 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200 @error('vend_name') border-red-500 ring-2 ring-red-200 @enderror" 
+                                       value="{{ old('vend_name') }}" placeholder="Masukkan nama vendor lengkap">
+                                @error('vend_name')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+
+                            <!-- Department ID -->
+                            <div class="space-y-2">
+                                <label for="dept_id" class="block text-sm font-semibold text-gray-700">Department ID</label>
+                                <input type="text" name="dept_id" id="dept_id" 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200 @error('dept_id') border-red-500 ring-2 ring-red-200 @enderror" 
+                                       value="{{ old('dept_id') }}" placeholder="Masukkan department ID">
+                                @error('dept_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+
+                            <!-- Department Description -->
+                            <div class="space-y-2">
+                                <label for="dept_description" class="block text-sm font-semibold text-gray-700">Kategori/Departemen</label>
+                                <input type="text" name="dept_description" id="dept_description" 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200 @error('dept_description') border-red-500 ring-2 ring-red-200 @enderror" 
+                                       value="{{ old('dept_description') }}" placeholder="Masukkan kategori barang">
+                                @error('dept_description')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+
+                            <!-- Category ID -->
+                            <div class="space-y-2">
+                                <label for="ctgry_id" class="block text-sm font-semibold text-gray-700">Category ID</label>
+                                <input type="text" name="ctgry_id" id="ctgry_id" 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200 @error('ctgry_id') border-red-500 ring-2 ring-red-200 @enderror" 
+                                       value="{{ old('ctgry_id') }}" placeholder="Masukkan category ID">
+                                @error('ctgry_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pricing Section - SIMPLIFIED -->
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4">
+                            Informasi Harga 
+                            <span class="text-sm font-normal text-gray-600">(Field lain akan dihitung otomatis)</span>
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- Cost Price -->
+                            <div class="space-y-2">
+                                <label for="cost_price" class="block text-sm font-semibold text-gray-700">Harga Beli <span class="text-red-500">*</span></label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-3 text-gray-500">Rp</span>
+                                    <input type="text" name="cost_price_display" id="cost_price_display" 
+                                           class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200 @error('cost_price') border-red-500 ring-2 ring-red-200 @enderror" 
+                                           value="{{ old('cost_price') ? number_format(old('cost_price'), 0, ',', '.') : '' }}" placeholder="0">
+                                    <input type="hidden" name="cost_price" id="cost_price" value="{{ old('cost_price', 0) }}">
+                                </div>
+                                @error('cost_price')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+
+                            <!-- Unit Price -->
+                            <div class="space-y-2">
+                                <label for="unit_price" class="block text-sm font-semibold text-gray-700">Harga Jual</label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-3 text-gray-500">Rp</span>
+                                    <input type="text" name="unit_price_display" id="unit_price_display" 
+                                           class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200 @error('unit_price') border-red-500 ring-2 ring-red-200 @enderror" 
+                                           value="{{ old('unit_price') ? number_format(old('unit_price'), 0, ',', '.') : '' }}" placeholder="0">
+                                    <input type="hidden" name="unit_price" id="unit_price" value="{{ old('unit_price', 0) }}">
+                                </div>
+                                @error('unit_price')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+
+                            <!-- Discount Amount -->
+                            <div class="space-y-2">
+                                <label for="disc_amt" class="block text-sm font-semibold text-gray-700">Discount Amount</label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-3 text-gray-500">Rp</span>
+                                    <input type="text" name="disc_amt_display" id="disc_amt_display" 
+                                           class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200 @error('disc_amt') border-red-500 ring-2 ring-red-200 @enderror" 
+                                           value="{{ old('disc_amt') ? number_format(old('disc_amt'), 0, ',', '.') : '' }}" placeholder="0">
+                                    <input type="hidden" name="disc_amt" id="disc_amt" value="{{ old('disc_amt', 0) }}">
+                                </div>
+                                @error('disc_amt')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+                        </div>
+
+                        <!-- Auto-calculated fields info -->
+                        <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                            <div class="flex items-start">
+                                <svg class="w-5 h-5 text-blue-600 mt-0.5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
-                                {{ $message }}
-                            </p>
-                        @enderror
+                                <div>
+                                    <h5 class="text-sm font-semibold text-blue-900 mb-1">Field yang Dihitung Otomatis:</h5>
+                                    <ul class="text-sm text-blue-800 space-y-1">
+                                        <li>• <strong>Total Cost:</strong> Harga Beli × Quantity</li>
+                                        <li>• <strong>Total Inc PPN:</strong> Harga Beli + (Harga Beli × 11%)</li>
+                                        <li>• <strong>Gross Amount:</strong> Harga Jual × Quantity</li>
+                                        <li>• <strong>Sales After Discount:</strong> Gross Amount - Discount</li>
+                                        <li>• <strong>Sales VAT:</strong> Sales After Discount × 11%</li>
+                                        <li>• <strong>Net Sales Before Tax:</strong> Sales After Discount - Sales VAT</li>
+                                        <li>• <strong>Margin:</strong> Net Sales Before Tax - Total Cost</li>
+                                        <li>• <strong>Margin Percent:</strong> (Margin ÷ Total Cost) × 100</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Location & Time Section -->
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4">Lokasi & Waktu</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <!-- Site -->
+                            <div class="space-y-2">
+                                <label for="site" class="block text-sm font-semibold text-gray-700">Site/Lokasi</label>
+                                <input type="text" name="site" id="site" 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200 @error('site') border-red-500 ring-2 ring-red-200 @enderror" 
+                                       value="{{ old('site') }}" placeholder="Masukkan lokasi/site">
+                                @error('site')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+
+                            <!-- Periode -->
+                            <div class="space-y-2">
+                                <label for="periode" class="block text-sm font-semibold text-gray-700">Periode</label>
+                                <select name="periode" id="periode" 
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200 @error('periode') border-red-500 ring-2 ring-red-200 @enderror">
+                                    <option value="">Pilih Periode</option>
+                                    @for($i = 1; $i <= 12; $i++)
+                                        <option value="{{ $i }}" {{ old('periode') == $i ? 'selected' : '' }}>
+                                            {{ $i }} - {{ DateTime::createFromFormat('!m', $i)->format('F') }}
+                                        </option>
+                                    @endfor
+                                </select>
+                                @error('periode')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+
+                            <!-- Date -->
+                            <div class="space-y-2">
+                                <label for="date" class="block text-sm font-semibold text-gray-700">Date</label>
+                                <input type="date" name="date" id="date" 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200 @error('date') border-red-500 ring-2 ring-red-200 @enderror" 
+                                       value="{{ old('date') }}">
+                                @error('date')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+
+                            <!-- Time -->
+                            <div class="space-y-2">
+                                <label for="time" class="block text-sm font-semibold text-gray-700">Time</label>
+                                <input type="time" name="time" id="time" 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200 @error('time') border-red-500 ring-2 ring-red-200 @enderror" 
+                                       value="{{ old('time') }}">
+                                @error('time')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Information -->
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4">Informasi Tambahan</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Consignment -->
+                            <div class="space-y-2">
+                                <label for="consignment" class="block text-sm font-semibold text-gray-700">Consignment</label>
+                                <input type="text" name="consignment" id="consignment" 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200 @error('consignment') border-red-500 ring-2 ring-red-200 @enderror" 
+                                       value="{{ old('consignment') }}" placeholder="Masukkan consignment">
+                                @error('consignment')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+
+                            <!-- Description -->
+                            <div class="space-y-2">
+                                <label for="description" class="block text-sm font-semibold text-gray-700">Deskripsi</label>
+                                <textarea name="description" id="description" rows="4" 
+                                          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200 @error('description') border-red-500 ring-2 ring-red-200 @enderror"
+                                          placeholder="Masukkan deskripsi barang">{{ old('description') }}</textarea>
+                                @error('description')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Submit Button -->
@@ -266,23 +356,13 @@ function formatNumber(num) {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
-// Remove dots and convert to number
-function unformatNumber(str) {
-    return str.replace(/\./g, '');
-}
-
 // Setup price input formatting
 function setupPriceInput(displayInput, hiddenInput) {
     displayInput.addEventListener('input', function(e) {
         let value = e.target.value;
-        
-        // Remove all non-digit characters
         value = value.replace(/[^\d]/g, '');
-        
-        // Update hidden field with raw number
         hiddenInput.value = value;
         
-        // Format display with dots
         if (value) {
             e.target.value = formatNumber(value);
         } else {
@@ -290,9 +370,7 @@ function setupPriceInput(displayInput, hiddenInput) {
         }
     });
 
-    // Handle keypress for price inputs (only allow numbers)
     displayInput.addEventListener('keypress', function(e) {
-        // Allow only numbers
         if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
             e.preventDefault();
         }
@@ -300,27 +378,16 @@ function setupPriceInput(displayInput, hiddenInput) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Auto format kode barang
+    // Setup price inputs (only the ones user can input)
+    const priceFields = ['cost_price', 'unit_price', 'disc_amt'];
     
-    // Setup harga beli formatting
-    const hbeliDisplay = document.getElementById('hbeli_display');
-    const hbeliHidden = document.getElementById('hbeli');
-    if (hbeliDisplay && hbeliHidden) {
-        setupPriceInput(hbeliDisplay, hbeliHidden);
-    }
-
-    // Add custom CSS to remove any unwanted outlines
-    const style = document.createElement('style');
-    style.textContent = `
-        input[type="text"]:focus,
-        input[type="number"]:focus,
-        select:focus,
-        textarea:focus {
-            outline: none !important;
-            box-shadow: 0 0 0 2px rgb(59 130 246 / 0.5) !important;
+    priceFields.forEach(field => {
+        const displayInput = document.getElementById(field + '_display');
+        const hiddenInput = document.getElementById(field);
+        if (displayInput && hiddenInput) {
+            setupPriceInput(displayInput, hiddenInput);
         }
-    `;
-    document.head.appendChild(style);
+    });
 });
 </script>
 @endsection

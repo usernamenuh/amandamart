@@ -6,27 +6,35 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up()
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
     {
         Schema::create('transaksis', function (Blueprint $table) {
             $table->id();
-            $table->date('tanggal');
-            $table->string('nomor')->unique(); // contoh: 0825-00002
-            $table->string('customer');
-            $table->decimal('subtotal', 15, 2)->default(0);
-            $table->decimal('diskon', 15, 2)->default(0);
-            $table->decimal('ongkir', 15, 2)->default(0); // Tambah kolom ongkir
-            $table->decimal('total', 15, 2)->default(0);
+            $table->foreignId('barang_id')->constrained('barangs')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->date('tanggal_transaksi');
+            $table->enum('jenis_transaksi', ['masuk', 'keluar']);
+            $table->integer('qty');
+            $table->decimal('harga_satuan', 15, 2); // Harga per unit saat transaksi
+            $table->decimal('total_harga', 15, 2); // Total akhir (qty * harga_satuan)
             $table->text('keterangan')->nullable();
-            $table->unsignedBigInteger('user_id');
+            $table->string('no_referensi')->nullable();
             $table->timestamps();
 
-            $table->foreign('user_id')->references('id')->on('users');
+            // Index untuk performa
+            $table->index(['barang_id', 'tanggal_transaksi']);
+            $table->index(['jenis_transaksi', 'tanggal_transaksi']);
         });
     }
 
-    public function down()
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
     {
-        Schema::dropIfExists('transaksi');
+        Schema::dropIfExists('transaksis');
     }
 };

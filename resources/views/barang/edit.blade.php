@@ -31,29 +31,11 @@
                         <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
                         </svg>
-                        <span class="ml-1 text-sm font-medium text-gray-500">{{ Str::limit($barang->nama, 40) }}</span>
+                        <span class="ml-1 text-sm font-medium text-gray-500">{{ Str::limit($barang->nama_item, 40) }}</span>
                     </div>
                 </li>
             </ol>
         </nav>
-
-        <!-- Success/Error Messages -->
-        @if (session('success'))
-            <div class="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg" role="alert">
-                <div class="flex">
-                    <div class="flex-shrink-0">
-                        <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                        </svg>
-                    </div>
-                    <div class="ml-3">
-                        <span class="block sm:inline">{{ session('success') }}</span>
-                    </div>
-                </div>
-            </div>
-        @endif
-
-       
 
         <!-- Form Card -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -68,7 +50,7 @@
                         </div>
                         <div>
                             <h3 class="text-xl font-bold text-gray-900">Form Edit Barang</h3>
-                            <p class="text-sm text-gray-600 mt-1">Perbarui informasi barang: {{ $barang->nama }}</p>
+                            <p class="text-sm text-gray-600 mt-1">Perbarui informasi barang: {{ $barang->nama_item }}</p>
                         </div>
                     </div>
                     <div class="flex items-center space-x-3">
@@ -90,195 +72,306 @@
             </div>
 
             <!-- Form Content -->
-            <div class="p-6">
-                <form action="{{ route('barang.update', $barang->id) }}" method="POST" class="space-y-6">
-                    @csrf
-                    @method('PUT')
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Kode Barang -->
-                        <div>
-                            <label for="kode" class="block text-sm font-medium text-gray-700 mb-2">
-                                Kode Barang <span class="text-red-500">*</span>
-                            </label>
-                            <input type="text" 
-                                   name="kode" 
-                                   id="kode" 
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent focus:outline-none transition-colors duration-200 @error('kode') border-red-500 @enderror" 
-                                   value="{{ old('kode', $barang->kode) }}" 
-                                   placeholder="Masukkan kode barang"
-                                   >
-                            @error('kode')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
+            <div class="p-8">
+                <form action="{{ route('barang.update', $barang->id) }}" method="POST" class="space-y-8">
+    @csrf
+    @method('PUT')
+    
+    <!-- Basic Information Section -->
+    <div class="bg-gray-50 rounded-lg p-6">
+        <h4 class="text-lg font-semibold text-gray-900 mb-4">Informasi Dasar</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Item ID -->
+            <div class="space-y-2">
+                <label for="itemid" class="block text-sm font-semibold text-gray-700">Item ID</label>
+                <input type="text" name="itemid" id="itemid" 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition-all duration-200 @error('itemid') border-red-500 ring-2 ring-red-200 @enderror" 
+                       value="{{ old('itemid', $barang->itemid) }}" placeholder="Masukkan Item ID">
+                @error('itemid')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
 
-                        <!-- Nama Barang -->
-                        <div>
-                            <label for="nama" class="block text-sm font-medium text-gray-700 mb-2">
-                                Nama Barang <span class="text-red-500">*</span>
-                            </label>
-                            <input type="text" 
-                                   name="nama" 
-                                   id="nama" 
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent focus:outline-none transition-colors duration-200 @error('nama') border-red-500 @enderror" 
-                                   value="{{ old('nama', $barang->nama) }}" 
-                                   placeholder="Masukkan nama barang"
-                                   >
-                            @error('nama')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
+            <!-- Nama Item -->
+            <div class="space-y-2">
+                <label for="nama_item" class="block text-sm font-semibold text-gray-700">Nama Item <span class="text-red-500">*</span></label>
+                <input type="text" name="nama_item" id="nama_item" 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition-all duration-200 @error('nama_item') border-red-500 ring-2 ring-red-200 @enderror" 
+                       value="{{ old('nama_item', $barang->nama_item) }}" placeholder="Masukkan nama item" required>
+                @error('nama_item')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
 
-                        <!-- Does Pcs -->
-                        <div>
-                            <label for="does_pcs" class="block text-sm font-medium text-gray-700 mb-2">
-                                Does Pcs (Konversi Unit) <span class="text-red-500">*</span>
-                            </label>
-                            @php
-                                $doesPcsValue = old('does_pcs', $barang->does_pcs);
-                                $doesPcsDisplay = ($doesPcsValue == 0) ? '' : rtrim(rtrim($doesPcsValue, '0'), '.');
+            <!-- Barcode -->
+            <div class="space-y-2">
+                <label for="barcode" class="block text-sm font-semibold text-gray-700">Barcode</label>
+                <input type="text" name="barcode" id="barcode" 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition-all duration-200 @error('barcode') border-red-500 ring-2 ring-red-200 @enderror" 
+                       value="{{ old('barcode', $barang->barcode) }}" placeholder="Masukkan barcode">
+                @error('barcode')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
 
-                            @endphp
-                            <input type="number" 
-                                   name="does_pcs" 
-                                   id="does_pcs" 
-                                   step="0.01"
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent focus:outline-none transition-colors duration-200 @error('does_pcs') border-red-500 @enderror" 
-                                   value="{{ $doesPcsDisplay }}" 
-                                   min="0"
-                                   placeholder="Masukkan nilai konversi"
-                                   >
-                            <p class="mt-1 text-xs text-gray-500">Nilai konversi unit (contoh: 1 dus = 12 pcs)</p>
-                            @error('does_pcs')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
+            <!-- No -->
+            <div class="space-y-2">
+                <label for="no" class="block text-sm font-semibold text-gray-700">No</label>
+                <input type="text" name="no" id="no" 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition-all duration-200 @error('no') border-red-500 ring-2 ring-red-200 @enderror" 
+                       value="{{ old('no', $barang->no) }}" placeholder="Masukkan nomor">
+                @error('no')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
 
-                        <!-- Golongan -->
-                        <div>
-                            <label for="golongan" class="block text-sm font-medium text-gray-700 mb-2">
-                                Golongan (Kategori) <span class="text-red-500">*</span>
-                            </label>
-                            <input type="text" 
-                                   name="golongan" 
-                                   id="golongan" 
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent focus:outline-none transition-colors duration-200 @error('golongan') border-red-500 @enderror" 
-                                   value="{{ old('golongan', $barang->golongan) }}" 
-                                   placeholder="Masukkan golongan barang"
-                                   >
-                            @error('golongan')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
+            <!-- Unit ID -->
+            <div class="space-y-2">
+                <label for="unitid" class="block text-sm font-semibold text-gray-700">Unit ID</label>
+                <input type="text" name="unitid" id="unitid" 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition-all duration-200 @error('unitid') border-red-500 ring-2 ring-red-200 @enderror" 
+                       value="{{ old('unitid', $barang->unitid) }}" placeholder="Masukkan unit ID">
+                @error('unitid')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
 
-                        <!-- Harga Beli -->
-                        <div>
-                            <label for="hbeli" class="block text-sm font-medium text-gray-700 mb-2">
-                                Harga Beli <span class="text-red-500">*</span>
-                            </label>
-                            <div class="relative">
-                                <span class="absolute left-3 top-3 text-gray-500">Rp</span>
-                                @php
-                                    $hbeliValue = old('hbeli', $barang->hbeli);
-                                    $hbeliFormatted = $hbeliValue ? number_format($hbeliValue, 0, ',', '.') : '';
-                                @endphp
-                                <input type="text" 
-                                       name="hbeli_display" 
-                                       id="hbeli_display" 
-                                       class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent focus:outline-none transition-colors duration-200 @error('hbeli') border-red-500 @enderror" 
-                                       value="{{ $hbeliFormatted }}" 
-                                       placeholder="0"
-                                       >
-                                <input type="hidden" name="hbeli" id="hbeli" value="{{ $hbeliValue }}">
-                            </div>
-                            @error('hbeli')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
+            <!-- Quantity -->
+            <div class="space-y-2">
+                <label for="qty" class="block text-sm font-semibold text-gray-700">Quantity <span class="text-red-500">*</span></label>
+                <input type="number" name="qty" id="qty" 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition-all duration-200 @error('qty') border-red-500 ring-2 ring-red-200 @enderror" 
+                       value="{{ old('qty', $barang->qty) }}" min="0" placeholder="0" required>
+                @error('qty')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
+        </div>
+    </div>
 
-                        <!-- User Input -->
-                        <div>
-                            <label for="user_id" class="block text-sm font-medium text-gray-700 mb-2">
-                                User Input
-                            </label>
-                            <select name="user_id" 
-                                    id="user_id" 
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent focus:outline-none transition-colors duration-200 @error('user_id') border-red-500 @enderror">
-                                <option value="">Pilih User</option>
-                                @foreach($users as $user)
-                                    <option value="{{ $user->id }}" {{ old('user_id', $barang->user_id) == $user->id ? 'selected' : '' }}>
-                                        {{ $user->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('user_id')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-                    </div>
+    <!-- Vendor & Category Section -->
+    <div class="bg-gray-50 rounded-lg p-6">
+        <h4 class="text-lg font-semibold text-gray-900 mb-4">Vendor & Kategori</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Vendor -->
+            <div class="space-y-2">
+                <label for="vendor" class="block text-sm font-semibold text-gray-700">Vendor</label>
+                <input type="text" name="vendor" id="vendor" 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition-all duration-200 @error('vendor') border-red-500 ring-2 ring-red-200 @enderror" 
+                       value="{{ old('vendor', $barang->vendor) }}" placeholder="Masukkan nama vendor">
+                @error('vendor')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
 
-                    <!-- Keterangan -->
-                    <div>
-                        <label for="keterangan" class="block text-sm font-medium text-gray-700 mb-2">
-                            Keterangan
-                        </label>
-                        <textarea name="keterangan" 
-                                  id="keterangan" 
-                                  rows="4" 
-                                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent focus:outline-none transition-colors duration-200 @error('keterangan') border-red-500 @enderror" 
-                                  placeholder="Masukkan keterangan tambahan (opsional)">{{ old('keterangan', $barang->keterangan) }}</textarea>
-                        @error('keterangan')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
+            <!-- Vendor ID -->
+            <div class="space-y-2">
+                <label for="vendor_id" class="block text-sm font-semibold text-gray-700">Vendor ID</label>
+                <input type="text" name="vendor_id" id="vendor_id" 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition-all duration-200 @error('vendor_id') border-red-500 ring-2 ring-red-200 @enderror" 
+                       value="{{ old('vendor_id', $barang->vendor_id) }}" placeholder="Masukkan vendor ID">
+                @error('vendor_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
 
-                    <!-- Form Actions -->
-                    <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
-                        <a href="{{ route('barang.show', $barang->id) }}" 
-                           class="inline-flex items-center px-6 py-3 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors duration-200">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                            Batal
-                        </a>
-                        <button type="submit" 
-                                class="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors duration-200">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            Update Barang
-                        </button>
-                    </div>
-                </form>
+            <!-- Vendor Name -->
+            <div class="space-y-2">
+                <label for="vend_name" class="block text-sm font-semibold text-gray-700">Vendor Name</label>
+                <input type="text" name="vend_name" id="vend_name" 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition-all duration-200 @error('vend_name') border-red-500 ring-2 ring-red-200 @enderror" 
+                       value="{{ old('vend_name', $barang->vend_name) }}" placeholder="Masukkan nama vendor lengkap">
+                @error('vend_name')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
+
+            <!-- Department ID -->
+            <div class="space-y-2">
+                <label for="dept_id" class="block text-sm font-semibold text-gray-700">Department ID</label>
+                <input type="text" name="dept_id" id="dept_id" 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition-all duration-200 @error('dept_id') border-red-500 ring-2 ring-red-200 @enderror" 
+                       value="{{ old('dept_id', $barang->dept_id) }}" placeholder="Masukkan department ID">
+                @error('dept_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
+
+            <!-- Department Description -->
+            <div class="space-y-2">
+                <label for="dept_description" class="block text-sm font-semibold text-gray-700">Kategori/Departemen</label>
+                <input type="text" name="dept_description" id="dept_description" 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition-all duration-200 @error('dept_description') border-red-500 ring-2 ring-red-200 @enderror" 
+                       value="{{ old('dept_description', $barang->dept_description) }}" placeholder="Masukkan kategori barang">
+                @error('dept_description')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
+
+            <!-- Category ID -->
+            <div class="space-y-2">
+                <label for="ctgry_id" class="block text-sm font-semibold text-gray-700">Category ID</label>
+                <input type="text" name="ctgry_id" id="ctgry_id" 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition-all duration-200 @error('ctgry_id') border-red-500 ring-2 ring-red-200 @enderror" 
+                       value="{{ old('ctgry_id', $barang->ctgry_id) }}" placeholder="Masukkan category ID">
+                @error('ctgry_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
+        </div>
+    </div>
+
+    <!-- Pricing Section - SIMPLIFIED -->
+    <div class="bg-gray-50 rounded-lg p-6">
+        <h4 class="text-lg font-semibold text-gray-900 mb-4">
+            Informasi Harga 
+            <span class="text-sm font-normal text-gray-600">(Field lain akan dihitung otomatis)</span>
+        </h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Cost Price -->
+            <div class="space-y-2">
+                <label for="cost_price" class="block text-sm font-semibold text-gray-700">Harga Beli <span class="text-red-500">*</span></label>
+                <div class="relative">
+                    <span class="absolute left-3 top-3 text-gray-500">Rp</span>
+                    <input type="text" name="cost_price_display" id="cost_price_display" 
+                           class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition-all duration-200 @error('cost_price') border-red-500 ring-2 ring-red-200 @enderror" 
+                           value="{{ old('cost_price', $barang->cost_price) ? number_format(old('cost_price', $barang->cost_price), 0, ',', '.') : '' }}" placeholder="0">
+                <input type="hidden" name="cost_price" id="cost_price" value="{{ old('cost_price', $barang->cost_price) }}">
+            </div>
+            @error('cost_price')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+        </div>
+
+        <!-- Unit Price -->
+        <div class="space-y-2">
+            <label for="unit_price" class="block text-sm font-semibold text-gray-700">Harga Jual</label>
+            <div class="relative">
+                <span class="absolute left-3 top-3 text-gray-500">Rp</span>
+                <input type="text" name="unit_price_display" id="unit_price_display" 
+                       class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition-all duration-200 @error('unit_price') border-red-500 ring-2 ring-red-200 @enderror" 
+                       value="{{ old('unit_price', $barang->unit_price) ? number_format(old('unit_price', $barang->unit_price), 0, ',', '.') : '' }}" placeholder="0">
+                <input type="hidden" name="unit_price" id="unit_price" value="{{ old('unit_price', $barang->unit_price) }}">
+            </div>
+            @error('unit_price')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+        </div>
+
+        <!-- Discount Amount -->
+        <div class="space-y-2">
+            <label for="disc_amt" class="block text-sm font-semibold text-gray-700">Discount Amount</label>
+            <div class="relative">
+                <span class="absolute left-3 top-3 text-gray-500">Rp</span>
+                <input type="text" name="disc_amt_display" id="disc_amt_display" 
+                       class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition-all duration-200 @error('disc_amt') border-red-500 ring-2 ring-red-200 @enderror" 
+                       value="{{ old('disc_amt', $barang->disc_amt) ? number_format(old('disc_amt', $barang->disc_amt), 0, ',', '.') : '' }}" placeholder="0">
+                <input type="hidden" name="disc_amt" id="disc_amt" value="{{ old('disc_amt', $barang->disc_amt) }}">
+            </div>
+            @error('disc_amt')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+        </div>
+    </div>
+
+    <!-- Auto-calculated fields info -->
+    <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div class="flex items-start">
+            <svg class="w-5 h-5 text-blue-600 mt-0.5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <div>
+                <h5 class="text-sm font-semibold text-blue-900 mb-1">Field yang Dihitung Otomatis:</h5>
+                <ul class="text-sm text-blue-800 space-y-1">
+                    <li>• <strong>Total Cost:</strong> Harga Beli × Quantity</li>
+                    <li>• <strong>Total Inc PPN:</strong> Harga Beli + (Harga Beli × 11%)</li>
+                    <li>• <strong>Gross Amount:</strong> Harga Jual × Quantity</li>
+                    <li>• <strong>Sales After Discount:</strong> Gross Amount - Discount</li>
+                    <li>• <strong>Sales VAT:</strong> Sales After Discount × 11%</li>
+                    <li>• <strong>Net Sales Before Tax:</strong> Sales After Discount - Sales VAT</li>
+                    <li>• <strong>Margin:</strong> Net Sales Before Tax - Total Cost</li>
+                    <li>• <strong>Margin Percent:</strong> (Margin ÷ Total Cost) × 100</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Location & Time Section -->
+    <div class="bg-gray-50 rounded-lg p-6">
+        <h4 class="text-lg font-semibold text-gray-900 mb-4">Lokasi & Waktu</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Site -->
+            <div class="space-y-2">
+                <label for="site" class="block text-sm font-semibold text-gray-700">Site/Lokasi</label>
+                <input type="text" name="site" id="site" 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition-all duration-200 @error('site') border-red-500 ring-2 ring-red-200 @enderror" 
+                       value="{{ old('site', $barang->site) }}" placeholder="Masukkan lokasi/site">
+                @error('site')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
+
+            <!-- Periode -->
+            <div class="space-y-2">
+                <label for="periode" class="block text-sm font-semibold text-gray-700">Periode</label>
+                <select name="periode" id="periode" 
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition-all duration-200 @error('periode') border-red-500 ring-2 ring-red-200 @enderror">
+                    <option value="">Pilih Periode</option>
+                    @for($i = 1; $i <= 12; $i++)
+                        <option value="{{ $i }}" {{ old('periode', $barang->periode) == $i ? 'selected' : '' }}>
+                            {{ $i }} - {{ DateTime::createFromFormat('!m', $i)->format('F') }}
+                        </option>
+                    @endfor
+                </select>
+                @error('periode')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
+
+            <!-- Date -->
+            <div class="space-y-2">
+                <label for="date" class="block text-sm font-semibold text-gray-700">Date</label>
+                <input type="date" name="date" id="date" 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition-all duration-200 @error('date') border-red-500 ring-2 ring-red-200 @enderror" 
+                       value="{{ old('date', $barang->date ? \DateTime::createFromFormat('Y-m-d', '1900-01-01')->add(new \DateInterval('P' . ($barang->date - 1) . 'D'))->format('Y-m-d') : '') }}">
+                @error('date')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
+
+            <!-- Time -->
+            <div class="space-y-2">
+                <label for="time" class="block text-sm font-semibold text-gray-700">Time</label>
+                <input type="time" name="time" id="time" 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition-all duration-200 @error('time') border-red-500 ring-2 ring-red-200 @enderror" 
+                       value="{{ old('time', $barang->time ? sprintf('%02d:%02d', floor($barang->time * 24), ($barang->time * 24 * 60) % 60) : '') }}">
+                @error('time')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Information -->
+    <div class="bg-gray-50 rounded-lg p-6">
+        <h4 class="text-lg font-semibold text-gray-900 mb-4">Informasi Tambahan</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Consignment -->
+            <div class="space-y-2">
+                <label for="consignment" class="block text-sm font-semibold text-gray-700">Consignment</label>
+                <input type="text" name="consignment" id="consignment" 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition-all duration-200 @error('consignment') border-red-500 ring-2 ring-red-200 @enderror" 
+                       value="{{ old('consignment', $barang->consignment) }}" placeholder="Masukkan consignment">
+                @error('consignment')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
+
+            <!-- Description -->
+            <div class="space-y-2">
+                <label for="description" class="block text-sm font-semibold text-gray-700">Deskripsi</label>
+                <textarea name="description" id="description" rows="4" 
+                          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition-all duration-200 @error('description') border-red-500 ring-2 ring-red-200 @enderror"
+                          placeholder="Masukkan deskripsi barang">{{ old('description', $barang->description) }}</textarea>
+                @error('description')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
+        </div>
+    </div>
+
+    <!-- Submit Button -->
+    <div class="flex justify-end space-x-4 pt-8 border-t border-gray-200">
+        <a href="{{ route('barang.show', $barang->id) }}" 
+           class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200 font-medium">
+            Batal
+        </a>
+        <button type="submit" 
+                class="px-8 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200 font-medium shadow-sm hover:shadow-md">
+            <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            Update Barang
+        </button>
+    </div>
+</form>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-// Format number with dots as thousand separators
+// Format number with dots as thousand separators  
 function formatNumber(num) {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-}
-
-// Remove dots and convert to number
-function unformatNumber(str) {
-    return str.replace(/\./g, '');
 }
 
 // Setup price input formatting
 function setupPriceInput(displayInput, hiddenInput) {
     displayInput.addEventListener('input', function(e) {
         let value = e.target.value;
-        
-        // Remove all non-digit characters
         value = value.replace(/[^\d]/g, '');
-        
-        // Update hidden field with raw number
         hiddenInput.value = value;
         
-        // Format display with dots
         if (value) {
             e.target.value = formatNumber(value);
         } else {
@@ -286,9 +379,7 @@ function setupPriceInput(displayInput, hiddenInput) {
         }
     });
 
-    // Handle keypress for price inputs (only allow numbers)
     displayInput.addEventListener('keypress', function(e) {
-        // Allow only numbers
         if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
             e.preventDefault();
         }
@@ -296,50 +387,16 @@ function setupPriceInput(displayInput, hiddenInput) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    const hbeliDisplay = document.getElementById('hbeli_display');
-    const hbeliHidden = document.getElementById('hbeli');
-    const doesPcs = document.getElementById('does_pcs');
-
-    // Setup harga beli formatting
-    if (hbeliDisplay && hbeliHidden) {
-        setupPriceInput(hbeliDisplay, hbeliHidden);
-    }
-
-    // Handle does_pcs to not show zero
-    doesPcs.addEventListener('focus', function(e) {
-        if (e.target.value == '0' || e.target.value == '0.00') {
-            e.target.value = '';
+    // Setup price inputs (only the ones user can input)
+    const priceFields = ['cost_price', 'unit_price', 'disc_amt'];
+    
+    priceFields.forEach(field => {
+        const displayInput = document.getElementById(field + '_display');
+        const hiddenInput = document.getElementById(field);
+        if (displayInput && hiddenInput) {
+            setupPriceInput(displayInput, hiddenInput);
         }
     });
-
-    doesPcs.addEventListener('blur', function(e) {
-        if (e.target.value === '' || e.target.value === '0' || e.target.value === '0.00') {
-            e.target.value = '';
-        }
-    });
-
-    // Prevent form submission if does_pcs is empty
-    document.querySelector('form').addEventListener('submit', function(e) {
-        if (doesPcs.value === '' || doesPcs.value === '0') {
-            e.preventDefault();
-            alert('Does Pcs tidak boleh kosong atau nol');
-            doesPcs.focus();
-            return false;
-        }
-    });
-
-    // Add custom CSS to remove any unwanted outlines
-    const style = document.createElement('style');
-    style.textContent = `
-        input[type="text"]:focus,
-        input[type="number"]:focus,
-        select:focus,
-        textarea:focus {
-            outline: none !important;
-            box-shadow: 0 0 0 2px rgb(147 51 234 / 0.5) !important;
-        }
-    `;
-    document.head.appendChild(style);
 });
 </script>
 @endsection

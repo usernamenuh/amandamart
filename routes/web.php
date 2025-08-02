@@ -19,16 +19,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    Route::controller(BarangController::class)->group(function () {
+    // Barang Routes
+    Route::resource('barang', BarangController::class);
+    Route::get('/barang/import/form', [BarangController::class, 'importForm'])->name('barang.import.form');
+    Route::post('/barang/import', [BarangController::class, 'import'])->name('barang.import');
+    Route::get('/barang/template', [BarangController::class, 'downloadTemplate'])->name('barang.template');
 
-        Route::middleware('role:admin_gudang')->group(function () {
-
-            Route::get('/barang/import', 'showImportForm')->name('barang.import.form');
-            Route::post('/barang/import', 'import')->name('barang.import');
-            Route::get('/barang/template', 'downloadTemplate')->name('barang.template');
-        });
-    });
-
+    // Transaksi Routes
+    Route::resource('transaksi', TransaksiController::class);
     Route::controller(TransaksiController::class)->group(function () {
         Route::middleware('role:admin_gudang')->group(function () {
             Route::get('/transaksi/import', 'showImportForm')->name('transaksi.import.form');
@@ -40,8 +38,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/transaksi/test', 'testData')->name('transaksi.test');
     });
 
-    Route::resource('transaksi', TransaksiController::class);
- Route::resource('barang', BarangController::class);
+    // Laporan Routes
     Route::prefix('laporan')->name('laporan.')->group(function () {
         Route::get('/pareto', [LaporanController::class, 'analisisPareto'])->name('pareto');
         Route::get('/pareto/export', [LaporanController::class, 'exportPareto'])->name('pareto.export');
