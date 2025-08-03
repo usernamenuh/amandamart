@@ -88,7 +88,7 @@
                     $user = auth()->user();
                 @endphp
 
-                @if (!isset($user->role) || $user->role !== 'owner')
+               @if(auth()->user()->role === 'admin')
                     <a href="{{ route('barang.create') }}"
                         class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 shadow-sm text-sm">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -217,39 +217,187 @@
 
 <!-- Import Modal -->
 <div id="importModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
-    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeImportModal()"></div>
+    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-50 transition-opacity backdrop-blur-sm" onclick="closeImportModal()"></div>
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
-        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <div class="sm:flex sm:items-start">
-                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-green-100 sm:mx-0 sm:h-10 sm:w-10">
-                        <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                        </svg>
+        
+        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-green-500 to-emerald-600 px-6 py-6">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-xl font-bold text-white">Import Data Barang</h3>
+                            <p class="text-green-100 text-sm">Upload file Excel atau CSV untuk menambah data barang</p>
+                        </div>
                     </div>
-                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900">Import Data Barang</h3>
-                        <div class="mt-2">
-                            <p class="text-sm text-gray-500">Pilih file Excel untuk import data barang</p>
-                            <form id="importForm" enctype="multipart/form-data" class="mt-4">
-                                @csrf
-                                <input type="file" name="file" id="importFile" accept=".xlsx,.xls,.csv" 
-                                       class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                            </form>
+                    <button onclick="closeImportModal()" class="text-white hover:text-green-200 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="px-6 py-6">
+                <!-- Progress Bar -->
+                <div id="importProgress" class="hidden mb-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-700">Progress Import</span>
+                        <span id="importProgressPercent" class="text-sm text-gray-500">0%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                        <div id="importProgressBar" class="bg-gradient-to-r from-green-500 to-emerald-600 h-3 rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
+                    </div>
+                    <p id="importProgressText" class="text-sm text-gray-600 mt-2 flex items-center">
+                        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Memproses file...
+                    </p>
+                </div>
+
+                <!-- File Upload Area -->
+                <form id="importForm" enctype="multipart/form-data">
+                    @csrf
+                    <div class="relative">
+                        <input type="file" name="file" id="importFile" accept=".xlsx,.xls,.csv" 
+                               class="hidden" onchange="handleFileSelect(this)">
+                        
+                        <!-- Drop Zone -->
+                        <label for="importFile" id="dropZone" class="cursor-pointer block">
+                            <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-green-400 hover:bg-green-50 transition-all duration-300 group">
+                                <div class="space-y-4">
+                                    <!-- Upload Icon -->
+                                    <div class="mx-auto w-16 h-16 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                        </svg>
+                                    </div>
+                                    
+                                    <!-- Upload Text -->
+                                    <div>
+                                        <p class="text-lg font-semibold text-gray-700 group-hover:text-green-700 transition-colors">
+                                            Pilih file atau seret ke sini
+                                        </p>
+                                        <p class="text-sm text-gray-500 mt-1">
+                                            Mendukung format Excel (.xlsx, .xls) dan CSV
+                                        </p>
+                                    </div>
+                                    
+                                    <!-- File Size Info -->
+                                    <div class="flex items-center justify-center space-x-4 text-xs text-gray-400">
+                                        <div class="flex items-center">
+                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                            </svg>
+                                            Maksimal 10MB
+                                        </div>
+                                        <div class="flex items-center">
+                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                            </svg>
+                                            Aman & Terenkripsi
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </form>
+
+                <!-- Selected File Display -->
+                <div id="selectedFile" class="hidden mt-4">
+                    <div class="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <p id="fileName" class="text-sm font-semibold text-green-800"></p>
+                                    <p id="fileSize" class="text-xs text-green-600"></p>
+                                </div>
+                            </div>
+                            <button type="button" onclick="clearFile()" class="text-green-600 hover:text-green-800 transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Import Tips -->
+                <div class="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <svg class="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h4 class="text-sm font-semibold text-blue-800 mb-2">Tips Import Data:</h4>
+                            <ul class="text-xs text-blue-700 space-y-1">
+                                <li class="flex items-center">
+                                    <svg class="w-3 h-3 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                    </svg>
+                                    Pastikan kolom header sesuai dengan format yang dibutuhkan
+                                </li>
+                                <li class="flex items-center">
+                                    <svg class="w-3 h-3 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                    </svg>
+                                    Data duplikat akan diperbarui secara otomatis
+                                </li>
+                                <li class="flex items-center">
+                                    <svg class="w-3 h-3 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                    </svg>
+                                    Proses import akan berjalan di background
+                                </li>
+                            </ul>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                <button type="button" onclick="submitImport()"
-                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm">
-                    Import
-                </button>
-                <button type="button" onclick="closeImportModal()"
-                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
-                    Batal
-                </button>
+
+            <!-- Footer -->
+            <div class="bg-gray-50 px-6 py-4 flex items-center justify-between">
+                <div class="text-sm text-gray-500">
+                    <span class="flex items-center">
+                        <svg class="w-4 h-4 mr-1 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Data Anda aman dan terproteksi
+                    </span>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button type="button" onclick="closeImportModal()"
+                            class="px-6 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors">
+                        Batal
+                    </button>
+                    <button type="button" id="importBtn" onclick="submitImport()" disabled
+                            class="px-6 py-2.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg text-sm font-medium hover:from-green-700 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-200 flex items-center">
+                        <span id="importBtnText">Mulai Import</span>
+                        <div id="importBtnSpinner" class="hidden ml-2 w-4 h-4">
+                            <svg class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </div>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -496,7 +644,7 @@
                                     </svg>
                                     Lihat Detail
                                 </a>
-                                @if (!isset($user->role) || $user->role !== 'owner')
+                                @if(auth()->user()->role === 'admin')
                                     <a href="/barang/${item.id}/edit"
                                         class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
                                         <svg class="w-4 h-4 mr-3 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -631,66 +779,225 @@
         function closeImportModal() {
             document.getElementById('importModal').classList.add('hidden');
             document.body.style.overflow = 'auto';
+            // Reset form
+            document.getElementById('importForm').reset();
+            document.getElementById('selectedFile').classList.add('hidden');
+            document.getElementById('importBtn').disabled = true;
+            document.getElementById('importProgress').classList.add('hidden');
         }
 
-        function submitImport() {
-            const fileInput = document.getElementById('importFile');
-            const file = fileInput.files[0];
-            
-            if (!file) {
-                showNotification('error', 'Pilih file terlebih dahulu');
-                return;
-            }
+        // Handle file selection
+function handleFileSelect(input) {
+    const file = input.files[0];
+    const selectedFileDiv = document.getElementById('selectedFile');
+    const fileNameSpan = document.getElementById('fileName');
+    const fileSizeSpan = document.getElementById('fileSize');
+    const importBtn = document.getElementById('importBtn');
+    const dropZone = document.getElementById('dropZone');
+    
+    if (file) {
+        // Validate file type
+        const allowedTypes = ['.xlsx', '.xls', '.csv'];
+        const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+        
+        if (!allowedTypes.includes(fileExtension)) {
+            showNotification('error', 'Format file tidak didukung. Gunakan Excel (.xlsx, .xls) atau CSV');
+            input.value = '';
+            return;
+        }
+        
+        // Validate file size (10MB)
+        if (file.size > 10 * 1024 * 1024) {
+            showNotification('error', 'Ukuran file terlalu besar. Maksimal 10MB');
+            input.value = '';
+            return;
+        }
+        
+        // Format file size
+        const formatFileSize = (bytes) => {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        };
+        
+        fileNameSpan.textContent = file.name;
+        fileSizeSpan.textContent = formatFileSize(file.size);
+        selectedFileDiv.classList.remove('hidden');
+        importBtn.disabled = false;
+        
+        // Update drop zone appearance
+        dropZone.classList.add('border-green-400', 'bg-green-50');
+    } else {
+        selectedFileDiv.classList.add('hidden');
+        importBtn.disabled = true;
+        dropZone.classList.remove('border-green-400', 'bg-green-50');
+    }
+}
 
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+// Enhanced submit import with better progress
+function submitImport() {
+    const fileInput = document.getElementById('importFile');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        showNotification('error', 'Pilih file terlebih dahulu');
+        return;
+    }
 
-            fetch('{{ route("barang.import") }}', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showNotification('success', data.message);
-                    closeImportModal();
-                    loadData(true); // Reload data
-                } else {
-                    showNotification('error', data.message);
+    // Show progress
+    const importBtn = document.getElementById('importBtn');
+    const importBtnText = document.getElementById('importBtnText');
+    const importBtnSpinner = document.getElementById('importBtnSpinner');
+    const importProgress = document.getElementById('importProgress');
+    const importProgressBar = document.getElementById('importProgressBar');
+    const importProgressText = document.getElementById('importProgressText');
+    const importProgressPercent = document.getElementById('importProgressPercent');
+    
+    importBtn.disabled = true;
+    importBtnText.textContent = 'Mengimpor...';
+    importBtnSpinner.classList.remove('hidden');
+    importProgress.classList.remove('hidden');
+    
+    // Enhanced progress simulation
+    let progress = 0;
+    const progressSteps = [
+        { progress: 15, text: 'Memvalidasi file...' },
+        { progress: 35, text: 'Membaca data...' },
+        { progress: 60, text: 'Memproses data...' },
+        { progress: 85, text: 'Menyimpan ke database...' },
+        { progress: 95, text: 'Menyelesaikan...' }
+    ];
+    
+    let currentStep = 0;
+    const progressInterval = setInterval(() => {
+        if (currentStep < progressSteps.length) {
+            const step = progressSteps[currentStep];
+            progress = step.progress;
+            importProgressBar.style.width = progress + '%';
+            importProgressPercent.textContent = progress + '%';
+            importProgressText.innerHTML = `
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                ${step.text}
+            `;
+            currentStep++;
+        }
+    }, 800);
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+
+    fetch('{{ route("barang.import") }}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        clearInterval(progressInterval);
+        importProgressBar.style.width = '100%';
+        importProgressPercent.textContent = '100%';
+        importProgressText.innerHTML = `
+            <svg class="w-4 h-4 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            Import berhasil diselesaikan!
+        `;
+        
+        setTimeout(() => {
+            if (data.success) {
+                showNotification('success', data.message);
+                closeImportModal();
+                loadData(true); // Reload data
+                
+                // Show detailed results if available
+                if (data.data) {
+                    const details = `
+                        📊 Hasil Import: ${data.data.total_data || 0} total | 
+                        ✅ ${data.data.berhasil || 0} berhasil | 
+                        🔄 ${data.data.diperbarui || 0} diperbarui | 
+                        ❌ ${data.data.gagal || 0} gagal
+                    `;
+                    setTimeout(() => {
+                        showNotification('info', details);
+                    }, 2000);
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showNotification('error', 'Terjadi kesalahan saat import');
-            });
-        }
+            } else {
+                showNotification('error', data.message || 'Terjadi kesalahan saat import');
+            }
+        }, 1000);
+    })
+    .catch(error => {
+        clearInterval(progressInterval);
+        console.error('Import error:', error);
+        showNotification('error', 'Terjadi kesalahan saat import: ' + error.message);
+    })
+    .finally(() => {
+        // Reset button state
+        setTimeout(() => {
+            importBtn.disabled = false;
+            importBtnText.textContent = 'Mulai Import';
+            importBtnSpinner.classList.add('hidden');
+        }, 2000);
+    });
+}
 
         // Notification function
         function showNotification(type, message) {
             const notification = document.createElement('div');
-            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transform transition-all duration-300 ${
-                type === 'success' ? 'bg-green-50 border border-green-200 text-green-800' : 'bg-red-50 border border-red-200 text-red-800'
-            }`;
+            const bgColor = type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 
+                           type === 'info' ? 'bg-blue-50 border-blue-200 text-blue-800' :
+                           'bg-red-50 border-red-200 text-red-800';
+            
+            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transform transition-all duration-300 ${bgColor} border max-w-md`;
+
+            const icon = type === 'success' ? 
+                '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>' :
+                type === 'info' ?
+                '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>' :
+                '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>';
 
             notification.innerHTML = `
-                <div class="flex items-center">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        ${type === 'success' 
-                            ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>'
-                            : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>'
-                        }
+                <div class="flex items-start">
+                    <svg class="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        ${icon}
                     </svg>
-                    <span class="font-medium">${message}</span>
+                    <div class="flex-1">
+                        <span class="font-medium text-sm">${message}</span>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-current opacity-70 hover:opacity-100">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
                 </div>
             `;
 
             document.body.appendChild(notification);
 
+            // Auto remove after 5 seconds
             setTimeout(() => {
-                notification.style.opacity = '0';
-                notification.style.transform = 'translateX(100%)';
-                setTimeout(() => notification.remove(), 300);
+                if (notification.parentElement) {
+                    notification.style.opacity = '0';
+                    notification.style.transform = 'translateX(100%)';
+                    setTimeout(() => {
+                        if (notification.parentElement) {
+                            notification.remove();
+                        }
+                    }, 300);
+                }
             }, 5000);
         }
 
@@ -710,6 +1017,53 @@
                 closeImportModal();
             }
         });
+
+        // Drag and drop functionality
+        const importModal = document.getElementById('importModal');
+        const fileInput = document.getElementById('importFile');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            importModal.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            importModal.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            importModal.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            const dropZone = importModal.querySelector('.border-dashed');
+            if (dropZone) {
+                dropZone.classList.add('border-blue-400', 'bg-blue-50');
+            }
+        }
+
+        function unhighlight(e) {
+            const dropZone = importModal.querySelector('.border-dashed');
+            if (dropZone) {
+                dropZone.classList.remove('border-blue-400', 'bg-blue-50');
+            }
+        }
+
+        importModal.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length > 0) {
+                fileInput.files = files;
+                handleFileSelect(fileInput);
+            }
+        }
     </script>
 @endpush
 @endsection

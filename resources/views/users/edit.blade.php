@@ -6,13 +6,14 @@
 <div class="min-h-screen bg-gray-50">
     <!-- Dashboard Header -->
     <x-dashboard-header 
-        title="Edit Pengguna" 
-        subtitle="Mengubah informasi pengguna"
-        :showTabs="false"
+        title="Kelola Pengguna" 
+        subtitle="Manajemen pengguna sistem StockMaster"
+        :showTabs="true"
+        activeTab="pengguna"
         :showBanner="false"
     />
 
-    <div class="max-w-4xl mx-auto px-2 lg:px-8">
+    <div class="max-w-7xl mx-auto px-2 lg:px-8">
         <div class="bg-white rounded-lg border border-gray-200 shadow-sm">
             <!-- Header -->
             <div class="px-6 py-4 border-b border-gray-200">

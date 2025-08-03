@@ -36,7 +36,7 @@
                     $user = auth()->user();
                 @endphp
                 <!-- Import Dropdown -->
-                @if ($user->role !== 'admin')
+                @if(auth()->user()->role === 'admin')
                     <div class="relative">
                         <button onclick="toggleImportDropdown()"
                             class="bg-gray-900 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-800 transition-colors flex items-center space-x-2">
