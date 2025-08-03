@@ -12,7 +12,7 @@
         activeTab="overview"
         :showBanner="true"
     />
-
+@if(auth()->user()->role === 'admin')
     <!-- Stock Alert Notification -->
     @if($stokMenipis > 0)
     <div class="max-w-7xl mx-auto px-2 lg:px-8 mb-6">
@@ -65,6 +65,7 @@
         </div>
     </div>
     @endif
+@endif
 
     <!-- Main Content -->
     <div class="max-w-7xl mx-auto px-2 lg:px-8">

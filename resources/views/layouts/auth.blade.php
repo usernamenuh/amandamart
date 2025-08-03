@@ -24,7 +24,7 @@
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(to bottom, rgba(168, 85, 247, 0.4) 0%, rgba(147, 51, 234, 0.5) 50%, #000000 100%);
+            background: linear-gradient(to bottom, rgba(247, 85, 85, 0.4) 0%, rgba(234, 51, 51, 0.5) 50%, #000000 100%);
         }
         
         /* Subtle noise texture overlay */
@@ -47,7 +47,7 @@
             width: 120vh;
             height: 60vh;
             border-radius: 0 0 50% 50%;
-            background: rgba(168, 85, 247, 0.2);
+            background: rgba(247, 85, 85, 0.2);
             filter: blur(80px);
         }
 
@@ -59,7 +59,7 @@
             width: 100vh;
             height: 60vh;
             border-radius: 0 0 100% 100%;
-            background: rgba(147, 51, 234, 0.2);
+            background: rgba(234, 51, 51, 0.2);
             filter: blur(60px);
             animation: pulseGlow 8s ease-in-out infinite alternate;
         }
@@ -72,7 +72,7 @@
             width: 90vh;
             height: 90vh;
             border-radius: 50% 50% 0 0;
-            background: rgba(168, 85, 247, 0.2);
+            background: rgba(247, 85, 85, 0.2);
             filter: blur(60px);
             animation: pulseGlow2 6s ease-in-out infinite alternate 1s;
         }
