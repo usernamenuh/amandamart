@@ -101,7 +101,6 @@ class BarangController extends Controller
         ]);
     }
 
-    // Rest of the methods remain the same as in the previous controller...
     public function create()
     {
         $users = User::all();
@@ -147,9 +146,10 @@ class BarangController extends Controller
         $unit_price = $data['unit_price'] ?? 0;
         $disc_amt = $data['disc_amt'] ?? 0;
         
-        // Auto-calculations
+        // FIXED: Auto-calculations with correct PPN calculation
         $data['total_cost'] = $cost_price * $qty;
-        $data['total_inc_ppn'] = $cost_price + ($cost_price * 0.11);
+        // PPN should be calculated from total_cost, not unit cost_price
+        $data['total_inc_ppn'] = $data['total_cost'] + ($data['total_cost'] * 0.11);
         
         if ($unit_price > 0) {
             $data['gross_amt'] = $unit_price * $qty;
@@ -254,9 +254,10 @@ class BarangController extends Controller
         $unit_price = $data['unit_price'] ?? 0;
         $disc_amt = $data['disc_amt'] ?? 0;
         
-        // Auto-calculations
+        // FIXED: Auto-calculations with correct PPN calculation
         $data['total_cost'] = $cost_price * $qty;
-        $data['total_inc_ppn'] = $cost_price + ($cost_price * 0.11);
+        // PPN should be calculated from total_cost, not unit cost_price
+        $data['total_inc_ppn'] = $data['total_cost'] + ($data['total_cost'] * 0.11);
         
         if ($unit_price > 0) {
             $data['gross_amt'] = $unit_price * $qty;
