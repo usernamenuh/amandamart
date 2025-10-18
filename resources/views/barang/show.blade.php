@@ -55,7 +55,11 @@
                         </div>
                     </div>
                     <div class="flex space-x-3">
-                        @if (!isset(auth()->user()->role) || auth()->user()->role !== 'owner')
+                         @php
+                    $user = auth()->user();
+                @endphp
+
+               @if(auth()->user()->role === 'admin')
                             <a href="{{ route('barang.edit', $barang->id) }}" 
                                class="inline-flex items-center px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -21,7 +21,7 @@ class LaporanController extends Controller
     {
         $bulanNames = [
             1 => 'Januari',
-            2 => 'Februari', 
+            2 => 'Februari',
             3 => 'Maret',
             4 => 'April',
             5 => 'Mei',
@@ -33,7 +33,7 @@ class LaporanController extends Controller
             11 => 'November',
             12 => 'Desember'
         ];
-        
+
         return $bulanNames[$periode] ?? 'Tidak Diketahui';
     }
 
@@ -45,18 +45,18 @@ class LaporanController extends Controller
         $sortBy = $request->query('sort_by', 'value');
         $periode = $request->query('periode', null);
         $page = $request->query('page', 1);
-        
+
         // Query barang berdasarkan periode - hanya select kolom yang diperlukan
         $query = Barang::select([
-                'id',
-                'nama_item',
-                'no',
-                'qty',
-                'cost_price',
-                'unit_price',
-                'vendor',
-                'periode'
-            ])
+            'id',
+            'nama_item',
+            'no',
+            'qty',
+            'cost_price',
+            'unit_price',
+            'vendor',
+            'periode'
+        ])
             ->where('qty', '>', 0);
 
         // Filter berdasarkan periode jika dipilih
@@ -70,7 +70,7 @@ class LaporanController extends Controller
         $analisis = $barangs->map(function ($barang) {
             $harga = $barang->unit_price > 0 ? $barang->unit_price : $barang->cost_price;
             $nilai_total = $barang->qty * $harga;
-            
+
             return (object) [
                 'barang_id' => $barang->id,
                 'nama_barang' => $barang->nama_item,
@@ -104,8 +104,8 @@ class LaporanController extends Controller
         }
 
         // Hitung total untuk persentase
-        $totalSumOfBasis = $sortBy === 'quantity' 
-            ? $analisis->sum('total_qty') 
+        $totalSumOfBasis = $sortBy === 'quantity'
+            ? $analisis->sum('total_qty')
             : $analisis->sum('total_nilai');
 
         // Hitung persentase dan kategori ABC
@@ -131,7 +131,7 @@ class LaporanController extends Controller
         if ($paginate) {
             $total = $analisis->count();
             $items = $analisis->slice(($page - 1) * $perPage, $perPage)->values();
-            
+
             return [
                 'items' => $items,
                 'total' => $total,
@@ -211,7 +211,7 @@ class LaporanController extends Controller
             ->distinct()
             ->orderBy('periode')
             ->pluck('periode')
-            ->map(function($p) {
+            ->map(function ($p) {
                 return [
                     'value' => $p,
                     'name' => $this->getBulanName($p)
@@ -222,7 +222,7 @@ class LaporanController extends Controller
     /**
      * Tampilkan analisis Pareto di view
      */
-     public function analisisPareto(Request $request)
+    public function analisisPareto(Request $request)
     {
         try {
             // Validasi input
@@ -233,13 +233,13 @@ class LaporanController extends Controller
 
             [$analisis, $totalSumOfBasis, $sortBy] = $this->getParetoData($request);
             $periode = $request->query('periode', null);
-            
+
             // Hitung statistik
             $stats = $this->calculateStats($analisis, $totalSumOfBasis, $sortBy);
-            
+
             // Info periode
             $periodeInfo = $this->getPeriodeInfo($periode);
-            
+
             // Ambil daftar periode yang tersedia untuk dropdown
             $availablePeriodes = $this->getAvailablePeriodes();
 
@@ -249,20 +249,19 @@ class LaporanController extends Controller
             return view('laporan.pareto', compact(
                 'initialItems',
                 'totalItems',
-                'totalSumOfBasis', 
-                'stats', 
-                'periode', 
-                'periodeInfo', 
-                'availablePeriodes', 
+                'totalSumOfBasis',
+                'stats',
+                'periode',
+                'periodeInfo',
+                'availablePeriodes',
                 'sortBy'
             ));
-
         } catch (\Exception $e) {
             return back()->with('error', 'Terjadi kesalahan saat memuat analisis: ' . $e->getMessage());
         }
     }
 
-   public function getParetoItems(Request $request)
+    public function getParetoItems(Request $request)
     {
         try {
             $request->validate([
@@ -272,7 +271,7 @@ class LaporanController extends Controller
             ]);
 
             $paginatedData = $this->getParetoData($request, true, 20);
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $paginatedData['items'],
@@ -283,7 +282,6 @@ class LaporanController extends Controller
                     'per_page' => $paginatedData['per_page']
                 ]
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -303,7 +301,7 @@ class LaporanController extends Controller
             ]);
 
             [$analisis, $totalSumOfBasis, $sortBy] = $this->getParetoData($request, false, 20, 100);
-            
+
             if ($analisis->isEmpty()) {
                 return back()->with('error', 'Tidak ada data untuk di-export. Silakan periksa filter yang digunakan.');
             }
@@ -318,10 +316,9 @@ class LaporanController extends Controller
             $filename = "Analisis_ABC_Pareto_{$basisText}_{$periodeText}_{$timestamp}.xlsx";
 
             return Excel::download(
-                new ParetoExport($analisis, $periode, $periodeInfo, $sortBy, $stats), 
+                new ParetoExport($analisis, $periode, $periodeInfo, $sortBy, $stats),
                 $filename
             );
-
         } catch (\Exception $e) {
             return back()->with('error', 'Terjadi kesalahan saat export: ' . $e->getMessage());
         }
@@ -370,7 +367,6 @@ class LaporanController extends Controller
             ];
 
             return response()->json($summary);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -398,7 +394,7 @@ class LaporanController extends Controller
             }
 
             [$analisis, $totalSumOfBasis, $sortBy] = $this->getParetoData($request);
-            
+
             $categoryItems = $analisis->where('kategori', $category)->values();
             $stats = $this->calculateStats($analisis, $totalSumOfBasis, $sortBy);
             $periodeInfo = $this->getPeriodeInfo($request->query('periode'));
@@ -418,7 +414,6 @@ class LaporanController extends Controller
                     'sort_by' => $sortBy
                 ]
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -443,7 +438,7 @@ class LaporanController extends Controller
             for ($i = 1; $i <= 12; $i++) {
                 $periodeRequest = new Request(['sort_by' => 'value', 'periode' => $i]);
                 [$periodeAnalisis, $periodeTotalBasis, $periodeSortBy] = $this->getParetoData($periodeRequest);
-                
+
                 if ($periodeAnalisis->count() > 0) {
                     $periodeStats[$i] = [
                         'nama_bulan' => $this->getBulanName($i),
@@ -465,7 +460,6 @@ class LaporanController extends Controller
                     'last_updated' => now()->format('Y-m-d H:i:s')
                 ]
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -482,13 +476,12 @@ class LaporanController extends Controller
         try {
             // Clear any cache if needed
             // Cache::forget('abc_analysis');
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Data berhasil direfresh',
                 'timestamp' => now()->format('Y-m-d H:i:s')
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -497,14 +490,10 @@ class LaporanController extends Controller
         }
     }
 
-    // Tambahkan di bagian atas controller
-
-// Tambahkan method-method ini di LaporanController
-
-/**
- * Export analisis Pareto ke PDF
- */
-public function exportPdf(Request $request)
+    /**
+     * Export analisis Pareto ke PDF
+     */
+    public function exportPdf(Request $request)
     {
         try {
             $request->validate([
@@ -513,7 +502,7 @@ public function exportPdf(Request $request)
             ]);
 
             [$analisis, $totalSumOfBasis, $sortBy] = $this->getParetoData($request, false, 20, 100);
-            
+
             if ($analisis->isEmpty()) {
                 return back()->with('error', 'Tidak ada data untuk di-export. Silakan periksa filter yang digunakan.');
             }
@@ -529,15 +518,14 @@ public function exportPdf(Request $request)
 
             $pdfExport = new ParetoPdfExport($analisis, $periode, $periodeInfo, $sortBy, $stats, $totalSumOfBasis);
             return $pdfExport->download($filename);
-
         } catch (\Exception $e) {
             return back()->with('error', 'Terjadi kesalahan saat export PDF: ' . $e->getMessage());
         }
     }
-/**
- * Stream PDF untuk preview
- */
- public function previewPdf(Request $request)
+    /**
+     * Stream PDF untuk preview
+     */
+    public function previewPdf(Request $request)
     {
         try {
             $request->validate([
@@ -546,7 +534,7 @@ public function exportPdf(Request $request)
             ]);
 
             [$analisis, $totalSumOfBasis, $sortBy] = $this->getParetoData($request, false, 20, 100);
-            
+
             if ($analisis->isEmpty()) {
                 return back()->with('error', 'Tidak ada data untuk di-preview. Silakan periksa filter yang digunakan.');
             }
@@ -562,47 +550,42 @@ public function exportPdf(Request $request)
 
             $pdfExport = new ParetoPdfExport($analisis, $periode, $periodeInfo, $sortBy, $stats, $totalSumOfBasis);
             return $pdfExport->stream($filename);
-
         } catch (\Exception $e) {
             return back()->with('error', 'Terjadi kesalahan saat preview PDF: ' . $e->getMessage());
         }
     }
 
-/**
- * Halaman print
- */
-/**
- * Halaman print
- */
-public function printPage(Request $request)
-{
-    try {
-        // Validasi input
-        $request->validate([
-            'sort_by' => 'nullable|in:value,quantity',
-            'periode' => 'nullable|integer|min:1|max:12'
-        ]);
+    /**
+     * Halaman print
+     */
+    public function printPage(Request $request)
+    {
+        try {
+            // Validasi input
+            $request->validate([
+                'sort_by' => 'nullable|in:value,quantity',
+                'periode' => 'nullable|integer|min:1|max:12'
+            ]);
 
-        [$analisis, $totalSumOfBasis, $sortBy] = $this->getParetoData($request);
-        $periode = $request->query('periode', null);
-        
-        // Hitung statistik untuk summary
-        $stats = $this->calculateStats($analisis, $totalSumOfBasis, $sortBy);
-        
-        // Info periode
-        $periodeInfo = $this->getPeriodeInfo($periode);
+            [$analisis, $totalSumOfBasis, $sortBy] = $this->getParetoData($request);
+            $periode = $request->query('periode', null);
 
-        return view('laporan.pareto_print', compact(
-            'analisis', 
-            'totalSumOfBasis', 
-            'stats', 
-            'periode', 
-            'periodeInfo', 
-            'sortBy'
-        ));
+            // Hitung statistik untuk summary
+            $stats = $this->calculateStats($analisis, $totalSumOfBasis, $sortBy);
 
-    } catch (\Exception $e) {
-        return back()->with('error', 'Terjadi kesalahan saat memuat halaman cetak: ' . $e->getMessage());
+            // Info periode
+            $periodeInfo = $this->getPeriodeInfo($periode);
+
+            return view('laporan.pareto_print', compact(
+                'analisis',
+                'totalSumOfBasis',
+                'stats',
+                'periode',
+                'periodeInfo',
+                'sortBy'
+            ));
+        } catch (\Exception $e) {
+            return back()->with('error', 'Terjadi kesalahan saat memuat halaman cetak: ' . $e->getMessage());
+        }
     }
-}
 }

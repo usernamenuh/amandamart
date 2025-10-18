@@ -21,14 +21,14 @@ class DatabaseSeeder extends Seeder
             'email' => 'admin@gmail.com',
             'password' => Hash::make('123456789'),
             'role' => 'admin',
-            'is_active' => true, // ✅ Tambahkan ini jika perlu
+            'is_active' => true, 
         ]);
         User::factory()->create([
             'name' => 'owner',
             'email' => 'owner@gmail.com',
             'password' => Hash::make('123456789'),
             'role' => 'user',
-            'is_active' => true, // ✅ Tambahkan ini jika perlu
+            'is_active' => true, 
         ]);
     }
 }

@@ -67,8 +67,12 @@
                         </div>
                     </div>
                     <div class="flex space-x-3">
-                        @php $user = auth()->user(); @endphp
-                        @if (!isset($user->role) || $user->role !== 'owner')
+                         @php
+                    $user = auth()->user();
+                @endphp
+
+               @if(auth()->user()->role === 'admin')
+                
                             <a href="{{ route('transaksi.edit', $transaksi->id) }}" 
                                class="inline-flex items-center px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow-md">
                                 <i class="fas fa-edit mr-2"></i>
@@ -358,7 +362,9 @@
                 </div>
 
                 <!-- Quick Actions -->
-                @if (!isset($user->role) || $user->role !== 'owner')
+                 
+
+               @if(auth()->user()->role === 'admin')
                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                         <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
                             <h4 class="text-lg font-semibold text-gray-900">
