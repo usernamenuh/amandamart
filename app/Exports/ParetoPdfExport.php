@@ -39,6 +39,8 @@ class ParetoPdfExport
 
     private function createPdf()
     {
+        ini_set('max_execution_time', 120); // 120 detik = 2 menit
+
         $pdf = Pdf::loadView('laporan.pareto_pdf', [
             'analisis' => $this->analisis,
             'periode' => $this->periode,
@@ -59,12 +61,13 @@ class ParetoPdfExport
         return $pdf;
     }
 
+
     private function generateFilename()
     {
         $basis = $this->sortBy === 'quantity' ? 'Kuantitas' : 'Nilai';
         $periode = $this->periodeInfo ? $this->periodeInfo['nama_bulan'] : 'Semua';
         $date = now()->format('Y-m-d_H-i');
-        
+
         return "ABC_Pareto_{$basis}_{$periode}_{$date}.pdf";
     }
 }

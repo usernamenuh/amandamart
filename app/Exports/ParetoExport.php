@@ -27,6 +27,9 @@ class ParetoExport implements FromView, WithStyles, WithColumnWidths
 
     public function view(): View
     {
+        ini_set('max_execution_time', 120); // 120 detik (2 menit)
+        ini_set('memory_limit', '512M');
+
         return view('laporan.pareto_export', [
             'analisis' => $this->analisis,
             'periode' => $this->periode,
@@ -37,18 +40,19 @@ class ParetoExport implements FromView, WithStyles, WithColumnWidths
         ]);
     }
 
+
     public function styles(Worksheet $sheet)
     {
         // Judul utama (baris 1)
         $styles = [
             1 => [
-                'font' => ['bold' => true, 'size' => 16, 'color' => ['rgb' => 'FFFFFF']], 
+                'font' => ['bold' => true, 'size' => 16, 'color' => ['rgb' => 'FFFFFF']],
                 'fill' => ['fillType' => 'solid', 'color' => ['rgb' => '653361']],
                 'alignment' => ['horizontal' => 'center', 'vertical' => 'center']
             ],
             // Info periode dan basis (baris 2)
             2 => [
-                'font' => ['bold' => true, 'size' => 12], 
+                'font' => ['bold' => true, 'size' => 12],
                 'alignment' => ['horizontal' => 'center', 'vertical' => 'center'],
                 'fill' => ['fillType' => 'solid', 'color' => ['rgb' => 'E8F4FD']]
             ],
@@ -70,11 +74,11 @@ class ParetoExport implements FromView, WithStyles, WithColumnWidths
         $rowCount = count($this->analisis) + 4; // 4 baris header
         for ($i = 5; $i <= $rowCount; $i++) {
             $sheet->getRowDimension($i)->setRowHeight(25);
-            
+
             // Styling berdasarkan kategori
-            $kategori = $this->analisis[$i-5]->kategori ?? '';
+            $kategori = $this->analisis[$i - 5]->kategori ?? '';
             $bgColor = 'FFFFFF'; // default white
-            
+
             if ($kategori === 'A') {
                 $bgColor = 'FFEBEE'; // Light red
             } elseif ($kategori === 'B') {
@@ -82,7 +86,7 @@ class ParetoExport implements FromView, WithStyles, WithColumnWidths
             } elseif ($kategori === 'C') {
                 $bgColor = 'E8F5E8'; // Light green
             }
-            
+
             $styles[$i] = [
                 'font' => ['bold' => false, 'size' => 10],
                 'alignment' => ['vertical' => 'center'],
