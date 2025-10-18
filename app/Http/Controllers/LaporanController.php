@@ -40,12 +40,13 @@ class LaporanController extends Controller
     /**
      * Ambil data analisis Pareto berdasarkan kolom PERIODE di tabel barangs
      */
-    private function getParetoData(Request $request)
+    private function getParetoData(Request $request, $paginate = false, $perPage = 20, $limitForExport = null)
     {
         $sortBy = $request->query('sort_by', 'value');
         $periode = $request->query('periode', null);
+        $page = $request->query('page', 1);
         
-        // Query barang berdasarkan periode
+        // Query barang berdasarkan periode - hanya select kolom yang diperlukan
         $query = Barang::select([
                 'id',
                 'nama_item',
@@ -53,7 +54,6 @@ class LaporanController extends Controller
                 'qty',
                 'cost_price',
                 'unit_price',
-                'total_inc_ppn',
                 'vendor',
                 'periode'
             ])
@@ -68,7 +68,6 @@ class LaporanController extends Controller
 
         // Hitung nilai total untuk setiap barang dan buat collection untuk analisis
         $analisis = $barangs->map(function ($barang) {
-            // Tentukan harga yang akan digunakan untuk perhitungan nilai
             $harga = $barang->unit_price > 0 ? $barang->unit_price : $barang->cost_price;
             $nilai_total = $barang->qty * $harga;
             
@@ -80,10 +79,6 @@ class LaporanController extends Controller
                 'harga_satuan' => $harga,
                 'total_nilai' => $nilai_total,
                 'vendor' => $barang->vendor,
-                'cost_price' => $barang->cost_price,
-                'unit_price' => $barang->unit_price,
-                'total_inc_ppn' => $barang->total_inc_ppn,
-                'stok_saat_ini' => $barang->qty,
                 'periode' => $barang->periode,
                 'periode_name' => $this->getBulanName($barang->periode)
             ];
@@ -104,6 +99,10 @@ class LaporanController extends Controller
         // Reset keys setelah sorting
         $analisis = $analisis->values();
 
+        if ($limitForExport && $analisis->count() > $limitForExport) {
+            $analisis = $analisis->slice(0, $limitForExport)->values();
+        }
+
         // Hitung total untuk persentase
         $totalSumOfBasis = $sortBy === 'quantity' 
             ? $analisis->sum('total_qty') 
@@ -112,14 +111,10 @@ class LaporanController extends Controller
         // Hitung persentase dan kategori ABC
         $akumulasi = 0;
         foreach ($analisis as $item) {
-            // Ambil nilai yang sesuai dengan basis sorting
             $itemBasis = $sortBy === 'quantity' ? $item->total_qty : $item->total_nilai;
-            
-            // Hitung persentase individual dengan validasi
             $persentase = $totalSumOfBasis > 0 ? ($itemBasis / $totalSumOfBasis) * 100 : 0;
             $akumulasi += $persentase;
 
-            // Klasifikasi ABC berdasarkan akumulasi persentase
             if ($akumulasi <= 80) {
                 $kategori = 'A';
             } elseif ($akumulasi <= 95) {
@@ -131,6 +126,21 @@ class LaporanController extends Controller
             $item->persentase = round($persentase, 2);
             $item->akumulasi_persentase = round($akumulasi, 2);
             $item->kategori = $kategori;
+        }
+
+        if ($paginate) {
+            $total = $analisis->count();
+            $items = $analisis->slice(($page - 1) * $perPage, $perPage)->values();
+            
+            return [
+                'items' => $items,
+                'total' => $total,
+                'per_page' => $perPage,
+                'current_page' => $page,
+                'last_page' => ceil($total / $perPage),
+                'totalSumOfBasis' => $totalSumOfBasis,
+                'sortBy' => $sortBy
+            ];
         }
 
         return [$analisis, $totalSumOfBasis, $sortBy];
@@ -212,7 +222,7 @@ class LaporanController extends Controller
     /**
      * Tampilkan analisis Pareto di view
      */
-    public function analisisPareto(Request $request)
+     public function analisisPareto(Request $request)
     {
         try {
             // Validasi input
@@ -233,8 +243,12 @@ class LaporanController extends Controller
             // Ambil daftar periode yang tersedia untuk dropdown
             $availablePeriodes = $this->getAvailablePeriodes();
 
+            $initialItems = $analisis->slice(0, 20)->values();
+            $totalItems = $analisis->count();
+
             return view('laporan.pareto', compact(
-                'analisis', 
+                'initialItems',
+                'totalItems',
                 'totalSumOfBasis', 
                 'stats', 
                 'periode', 
@@ -248,34 +262,61 @@ class LaporanController extends Controller
         }
     }
 
+   public function getParetoItems(Request $request)
+    {
+        try {
+            $request->validate([
+                'sort_by' => 'nullable|in:value,quantity',
+                'periode' => 'nullable|integer|min:1|max:12',
+                'page' => 'required|integer|min:1'
+            ]);
+
+            $paginatedData = $this->getParetoData($request, true, 20);
+            
+            return response()->json([
+                'success' => true,
+                'data' => $paginatedData['items'],
+                'pagination' => [
+                    'current_page' => $paginatedData['current_page'],
+                    'last_page' => $paginatedData['last_page'],
+                    'total' => $paginatedData['total'],
+                    'per_page' => $paginatedData['per_page']
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
     /**
      * Export analisis Pareto ke Excel dengan style yang enhanced
      */
     public function exportPareto(Request $request)
     {
         try {
-            // Validasi input
             $request->validate([
                 'sort_by' => 'nullable|in:value,quantity',
                 'periode' => 'nullable|integer|min:1|max:12'
             ]);
 
-            [$analisis, $totalSumOfBasis, $sortBy] = $this->getParetoData($request);
+            [$analisis, $totalSumOfBasis, $sortBy] = $this->getParetoData($request, false, 20, 100);
+            
+            if ($analisis->isEmpty()) {
+                return back()->with('error', 'Tidak ada data untuk di-export. Silakan periksa filter yang digunakan.');
+            }
+
             $periode = $request->query('periode', null);
-            
-            // Hitung statistik untuk summary
             $stats = $this->calculateStats($analisis, $totalSumOfBasis, $sortBy);
-            
-            // Info periode
             $periodeInfo = $this->getPeriodeInfo($periode);
 
-            // Generate filename yang descriptive
             $basisText = $sortBy === 'quantity' ? 'Kuantitas' : 'Nilai';
             $periodeText = $periodeInfo ? $periodeInfo['nama_bulan'] : 'Semua_Periode';
             $timestamp = now()->format('Y-m-d_H-i-s');
             $filename = "Analisis_ABC_Pareto_{$basisText}_{$periodeText}_{$timestamp}.xlsx";
 
-            // Export dengan data lengkap
             return Excel::download(
                 new ParetoExport($analisis, $periode, $periodeInfo, $sortBy, $stats), 
                 $filename
@@ -464,73 +505,68 @@ class LaporanController extends Controller
  * Export analisis Pareto ke PDF
  */
 public function exportPdf(Request $request)
-{
-    try {
-        // Validasi input
-        $request->validate([
-            'sort_by' => 'nullable|in:value,quantity',
-            'periode' => 'nullable|integer|min:1|max:12'
-        ]);
+    {
+        try {
+            $request->validate([
+                'sort_by' => 'nullable|in:value,quantity',
+                'periode' => 'nullable|integer|min:1|max:12'
+            ]);
 
-        [$analisis, $totalSumOfBasis, $sortBy] = $this->getParetoData($request);
-        $periode = $request->query('periode', null);
-        
-        // Hitung statistik untuk summary
-        $stats = $this->calculateStats($analisis, $totalSumOfBasis, $sortBy);
-        
-        // Info periode
-        $periodeInfo = $this->getPeriodeInfo($periode);
+            [$analisis, $totalSumOfBasis, $sortBy] = $this->getParetoData($request, false, 20, 100);
+            
+            if ($analisis->isEmpty()) {
+                return back()->with('error', 'Tidak ada data untuk di-export. Silakan periksa filter yang digunakan.');
+            }
 
-        // Generate filename yang descriptive
-        $basisText = $sortBy === 'quantity' ? 'Kuantitas' : 'Nilai';
-        $periodeText = $periodeInfo ? $periodeInfo['nama_bulan'] : 'Semua_Periode';
-        $timestamp = now()->format('Y-m-d_H-i-s');
-        $filename = "Analisis_ABC_Pareto_{$basisText}_{$periodeText}_{$timestamp}.pdf";
+            $periode = $request->query('periode', null);
+            $stats = $this->calculateStats($analisis, $totalSumOfBasis, $sortBy);
+            $periodeInfo = $this->getPeriodeInfo($periode);
 
-        // Export PDF
-        $pdfExport = new ParetoPdfExport($analisis, $periode, $periodeInfo, $sortBy, $stats, $totalSumOfBasis);
-        return $pdfExport->download($filename);
+            $basisText = $sortBy === 'quantity' ? 'Kuantitas' : 'Nilai';
+            $periodeText = $periodeInfo ? $periodeInfo['nama_bulan'] : 'Semua_Periode';
+            $timestamp = now()->format('Y-m-d_H-i-s');
+            $filename = "Analisis_ABC_Pareto_{$basisText}_{$periodeText}_{$timestamp}.pdf";
 
-    } catch (\Exception $e) {
-        return back()->with('error', 'Terjadi kesalahan saat export PDF: ' . $e->getMessage());
+            $pdfExport = new ParetoPdfExport($analisis, $periode, $periodeInfo, $sortBy, $stats, $totalSumOfBasis);
+            return $pdfExport->download($filename);
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Terjadi kesalahan saat export PDF: ' . $e->getMessage());
+        }
     }
-}
-
 /**
  * Stream PDF untuk preview
  */
-public function previewPdf(Request $request)
-{
-    try {
-        // Validasi input
-        $request->validate([
-            'sort_by' => 'nullable|in:value,quantity',
-            'periode' => 'nullable|integer|min:1|max:12'
-        ]);
+ public function previewPdf(Request $request)
+    {
+        try {
+            $request->validate([
+                'sort_by' => 'nullable|in:value,quantity',
+                'periode' => 'nullable|integer|min:1|max:12'
+            ]);
 
-        [$analisis, $totalSumOfBasis, $sortBy] = $this->getParetoData($request);
-        $periode = $request->query('periode', null);
-        
-        // Hitung statistik untuk summary
-        $stats = $this->calculateStats($analisis, $totalSumOfBasis, $sortBy);
-        
-        // Info periode
-        $periodeInfo = $this->getPeriodeInfo($periode);
+            [$analisis, $totalSumOfBasis, $sortBy] = $this->getParetoData($request, false, 20, 100);
+            
+            if ($analisis->isEmpty()) {
+                return back()->with('error', 'Tidak ada data untuk di-preview. Silakan periksa filter yang digunakan.');
+            }
 
-        // Generate filename yang descriptive
-        $basisText = $sortBy === 'quantity' ? 'Kuantitas' : 'Nilai';
-        $periodeText = $periodeInfo ? $periodeInfo['nama_bulan'] : 'Semua_Periode';
-        $timestamp = now()->format('Y-m-d_H-i-s');
-        $filename = "Preview_Analisis_ABC_Pareto_{$basisText}_{$periodeText}_{$timestamp}.pdf";
+            $periode = $request->query('periode', null);
+            $stats = $this->calculateStats($analisis, $totalSumOfBasis, $sortBy);
+            $periodeInfo = $this->getPeriodeInfo($periode);
 
-        // Stream PDF
-        $pdfExport = new ParetoPdfExport($analisis, $periode, $periodeInfo, $sortBy, $stats, $totalSumOfBasis);
-        return $pdfExport->stream($filename);
+            $basisText = $sortBy === 'quantity' ? 'Kuantitas' : 'Nilai';
+            $periodeText = $periodeInfo ? $periodeInfo['nama_bulan'] : 'Semua_Periode';
+            $timestamp = now()->format('Y-m-d_H-i-s');
+            $filename = "Preview_Analisis_ABC_Pareto_{$basisText}_{$periodeText}_{$timestamp}.pdf";
 
-    } catch (\Exception $e) {
-        return back()->with('error', 'Terjadi kesalahan saat preview PDF: ' . $e->getMessage());
+            $pdfExport = new ParetoPdfExport($analisis, $periode, $periodeInfo, $sortBy, $stats, $totalSumOfBasis);
+            return $pdfExport->stream($filename);
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Terjadi kesalahan saat preview PDF: ' . $e->getMessage());
+        }
     }
-}
 
 /**
  * Halaman print

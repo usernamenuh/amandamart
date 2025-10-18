@@ -15,7 +15,7 @@ Auth::routes();
 Route::get('/', function () {
     return Auth::check() ? redirect()->route('dashboard') : redirect()->route('login');
 });
-
+Route::get('/laporan/pareto/items', [LaporanController::class, 'getParetoItems'])->name('laporan.pareto.items');
 Route::middleware('auth')->group(function () {
 
     Route::get('/home', [HomeController::class, 'index'])->name('home');
@@ -48,6 +48,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     // Laporan Routes
     Route::prefix('laporan')->name('laporan.')->group(function () {
     // Routes yang sudah ada...
+    
     Route::get('/pareto', [LaporanController::class, 'analisisPareto'])->name('pareto');
     Route::get('/pareto/export', [LaporanController::class, 'exportPareto'])->name('pareto.export');
     
