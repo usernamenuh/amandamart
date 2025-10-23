@@ -13,7 +13,7 @@
         :showBanner="false"
     />
 
-    <div class="max-w-7xl mx-auto px-2 lg:px-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
         <!-- Success/Error Messages -->
         @if(session('success'))
         <div class="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">

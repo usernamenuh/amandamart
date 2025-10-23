@@ -6,6 +6,7 @@ use App\Http\Controllers\BarangController;
 use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\SPKController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\UserController;
@@ -15,7 +16,11 @@ Auth::routes();
 Route::get('/', function () {
     return Auth::check() ? redirect()->route('dashboard') : redirect()->route('login');
 });
+
+
 Route::get('/laporan/pareto/items', [LaporanController::class, 'getParetoItems'])->name('laporan.pareto.items');
+Route::get('/spk', [SPKController::class, 'index'])->name('spk.index');
+Route::get('/spk/export-pdf', [SPKController::class, 'exportPdf'])->name('spk.export-pdf');
 Route::middleware('auth')->group(function () {
 
     Route::get('/home', [HomeController::class, 'index'])->name('home');

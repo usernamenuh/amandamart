@@ -115,6 +115,12 @@
                     Pengguna
                 </a>
                 @endif
+                @if(auth()->user()->role === 'owner')
+                <a href="{{ route('spk.index') }}"
+                    class="tab-button {{ $activeTab === 'spk' ? 'active' : '' }} px-4 py-2 text-sm font-medium transition-all duration-200 rounded-md {{ $activeTab === 'spk' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-800 hover:bg-white/50' }} no-underline">
+                    SPK
+                </a>
+                @endif
             </nav>
         @endif
     </div>

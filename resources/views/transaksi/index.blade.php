@@ -304,7 +304,7 @@
                                     </div>
                                     <h3 class="text-lg font-medium text-gray-900 mb-2">Belum ada transaksi</h3>
                                     <p class="text-gray-500 mb-4">Mulai dengan menambahkan transaksi pertama</p>
-                                    @if (!isset($user->role) || $user->role !== 'owner')
+                                     @if(auth()->user()->role === 'admin')
                                         <a href="{{ route('transaksi.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
                                             <i class="fas fa-plus mr-2"></i>
                                             Tambah Transaksi Pertama
